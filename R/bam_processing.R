@@ -46,7 +46,7 @@ process_bams <- function(go_obj, outdir, cores = 1) {
 			as_tibble(.name_repair = "unique", rownames = "qname") %>%
 			select(qname, strand.first, cigar.first)
 
-		# Retrieve R1 reads with 3 or less soft-clipped 5' bases.
+		# Retrieve R1 reads with more than 3 soft-clipped 5' bases.
 		R1_keep <- bam_pairs %>%
 			mutate(
 				cigar_soft = ifelse(
@@ -56,8 +56,22 @@ process_bams <- function(go_obj, outdir, cores = 1) {
 				),
 				n_soft = str_extract(cigar_soft, "^\\d+") %>% as.numeric		
 			) %>%
-			filter(is.na(n_soft) | n_soft <= 3) %>%
-			pull(qname)
+			filter(!is.na(n_soft) & n_soft > 3)
+
+		write.table(
+			file.path(outdir, paste0(args$sample_name, "_softdiscard.txt")),
+			col.names = FALSE, row.names = FALSE, quote = FALSE
+		)
+
+		# Discard reads with more than 3 soft-clipped 5' bases.
+		command = paste(
+			"java -jar picard.jar FilterSamReads",
+			paste0("I=", file.path(outdir, paste0(args$sample_name, ".bam"))),
+			paste0("O=", file.path(outdir, paste0(args$sample_name, "_final.bam"))),
+			paste0("READ_LIST_FILE=", file.path(outdir, paste0(args$sample_name, "_softdiscard.txt"))),
+			"FILTER=excludeReadList"
+		)
+		system(command)
 	})
 
 	return(go_obj)
