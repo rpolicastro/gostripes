@@ -24,4 +24,5 @@ go_object <- gostripes(sample_sheet)
 
 ## Process fastq files.
 rRNA <- system.file("extdata", "Sc_rRNA.fasta", package = "gostripes")
+go_object <- process_reads(go_object, "./scratch/cleaned_fastq", rRNA)
 ```
