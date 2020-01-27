@@ -1,4 +1,3 @@
-
 bootstrap: docker
 From: continuumio/miniconda3
 
@@ -21,9 +20,9 @@ conda update -n base -y -c defaults conda
 
 # Install software available via conda environment.
 conda create -n gostripes -y -c conda-forge -c bioconda \
-star samtools fastqc picard r-tidyverse r-devtools \
-bioconductor-biostrings bioconductor-rsubread \
-bioconductor-genomicalignments
+star samtools fastqc picard \
+r-tidyverse r-devtools \
+bioconductor-biostrings bioconductor-rsubread bioconductor-genomicalignments
 
 # Update conda environment.
 conda update -n gostripes -y -c conda-forge -c bioconda --all
@@ -47,7 +46,7 @@ make install
 ## Install gostripes
 ## ----------
 
-# Add R to path doe installation.
+# Add R to path for installation.
 export PATH=$PATH:/opt/conda/envs/gostripes/bin/
 
 # Install gostripes from github.
