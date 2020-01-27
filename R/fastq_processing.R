@@ -52,4 +52,6 @@ process_reads <- function(go_obj, outdir, contamination_fasta, cores = 1){
 		)
 		system(command)
 	})
+
+	return(go_obj)
 }
