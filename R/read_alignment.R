@@ -55,6 +55,7 @@ align_reads <- function(go_obj, outdir, cores = 1) {
 
 	## Align reads using STAR.
 	pwalk(go_obj@sample_sheet, function(...) {
+		args <- list(...)
 
 		# Get names of cleaned and dusted fastq files.
 		cleaned_R1 <- file.path(go_obj$fastq_outdir, paste0(args$sample_name, "_READ1.fq"))
