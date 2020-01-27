@@ -20,8 +20,9 @@
 
 process_reads <- function(go_obj, outdir, contamination_fasta, cores = 1){
 	
-	## Add output directory to settings.
+	## Add output directory to settings and make sure it exists.
 	go_obj@settings$fastq_outdir <- outdir
+	dir.create(outdir, recursive = TRUE)
 
 	## Process each pair of reads.
 	pwalk(go_obj@sample_sheet, function(...) {

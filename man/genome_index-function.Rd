@@ -4,8 +4,7 @@
 \alias{genome_index}
 \title{Generate Genome Index}
 \usage{
-genome_index(go_obj, genome_assembly, genome_annotation, outdir,
-  cores = 1)
+genome_index(go_obj, genome_assembly, genome_annotation, outdir, cores = 1)
 }
 \arguments{
 \item{go_obj}{gostripes object}
