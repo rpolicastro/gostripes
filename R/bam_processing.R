@@ -20,13 +20,18 @@
 
 process_bams <- function(go_obj, outdir, cores = 1) {
 
+	## Ensure output directory exists.
+	dir.create(outdir, recursive = TRUE)
+
 	## Saving some settings.
 	go_obj@settings$bam_dir <- outdir
 
 	## Processing the BAM files.
 	pwalk(go_obj@sample_sheet, function(...) {
+		args <- list(...)
+
 		# File name of aligned reads.
-		bam_file <- file.path(deep_obj@settings$star_aligned, paste0(args$sample_name, "_Aligned.out.bam"))
+		bam_file <- file.path(go_obj@settings$star_aligned, paste0(args$sample_name, "_Aligned.sortedByCoord.out.bam"))
 
 		# Create samtools command to remove duplicates, non-primary reads, and reads without mate.
 		command <- paste(
@@ -35,12 +40,12 @@ process_bams <- function(go_obj, outdir, cores = 1) {
 			"samtools sort -@", cores, "- |",
 			"samtools markdup - - |",
 			"samtools view -F 3852 -f 3 -O BAM -@", cores,
-			"-o", file_path(outdir, paste0(args$sample_name, ".bam"))
+			"-o", file.path(outdir, paste0(args$sample_name, ".bam"))
 		)
 		system(command)
 
 		# Load R1 reads from bam.
-		bam_pairs <- file_path(outdir, paste0(args$sample_name, ".bam")) %>%
+		bam_pairs <- file.path(outdir, paste0(args$sample_name, ".bam")) %>%
 			readGAlignmentPairs(use.names = TRUE) %>%
 			as.data.frame %>%
 			as_tibble(.name_repair = "unique", rownames = "qname") %>%
@@ -56,16 +61,17 @@ process_bams <- function(go_obj, outdir, cores = 1) {
 				),
 				n_soft = str_extract(cigar_soft, "^\\d+") %>% as.numeric		
 			) %>%
-			filter(!is.na(n_soft) & n_soft > 3)
+			filter(!is.na(n_soft) & n_soft > 3) %>%
+			select(qname)
 
 		write.table(
-			file.path(outdir, paste0(args$sample_name, "_softdiscard.txt")),
+			R1_keep, file.path(outdir, paste0(args$sample_name, "_softdiscard.txt")),
 			col.names = FALSE, row.names = FALSE, quote = FALSE
 		)
 
 		# Discard reads with more than 3 soft-clipped 5' bases.
 		command = paste(
-			"java -jar picard.jar FilterSamReads",
+			"picard FilterSamReads",
 			paste0("I=", file.path(outdir, paste0(args$sample_name, ".bam"))),
 			paste0("O=", file.path(outdir, paste0(args$sample_name, "_final.bam"))),
 			paste0("READ_LIST_FILE=", file.path(outdir, paste0(args$sample_name, "_softdiscard.txt"))),

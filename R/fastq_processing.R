@@ -4,6 +4,7 @@
 #' Remove rRNA contamination, low complexity reads, and trim UMI-Spacer-GGG
 #'
 #' @import tibble
+#' @import S4Vectors
 #' @importFrom Biostrings readDNAStringSet DNAStringSet subseq writeXStringSet
 #' @importFrom stringr str_which
 #' @importFrom purrr pwalk
@@ -29,13 +30,14 @@ process_reads <- function(go_obj, outdir, contamination_fasta, cores = 1){
 		args <- list(...)
 
 		# Load up R1 read and check for reads matching proper R1 structure.
-		R1_data <- readDNAStringSet(args$R1_read, format = "fastq")
+		R1_data <- readDNAStringSet(args$R1_read, format = "fastq", with.qualities = TRUE)
 		R1_keep_index <- str_which(R1_data, "^[ATGCN]{8}TATAGGG")
 		R1_keep <- R1_data[R1_keep_index] %>%
 			subseq(start = 16)
+		mcols(R1_keep)$qualities <- subseq(mcols(R1_keep)$qualities, start = 16)
 
 		# Discard the matching paired end R2 read.
-		R2_data <- readDNAStringSet(args$R2_read, format = "fastq")
+		R2_data <- readDNAStringSet(args$R2_read, format = "fastq", with.qualities = TRUE)
 		R2_keep <- R2_data[R1_keep_index]
 
 		# Write trimmed fastq read to file.

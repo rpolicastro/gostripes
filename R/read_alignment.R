@@ -15,6 +15,9 @@
 
 genome_index <- function(go_obj, genome_assembly, genome_annotation, outdir, cores = 1) {
 	
+	## Make sure the output directory exists.
+	dir.create(outdir, recursive = TRUE)
+
 	## Store some of the settings.
 	go_obj@settings$genome_assembly <- genome_assembly
 	go_obj@settings$genome_annotation <- genome_annotation
@@ -50,6 +53,9 @@ genome_index <- function(go_obj, genome_assembly, genome_annotation, outdir, cor
 
 align_reads <- function(go_obj, outdir, cores = 1) {
 
+	## Make sure the output directory exists.
+	dir.create(outdir, recursive = TRUE)
+
 	## Store some of the settings.
 	go_obj@settings$star_aligned <- outdir
 
@@ -58,16 +64,16 @@ align_reads <- function(go_obj, outdir, cores = 1) {
 		args <- list(...)
 
 		# Get names of cleaned and dusted fastq files.
-		cleaned_R1 <- file.path(go_obj$fastq_outdir, paste0(args$sample_name, "_READ1.fq"))
-		cleaned_R2 <- file.path(go_obj$fastq_outdir, paste0(args$sample_name, "_READ2.fq"))
+		cleaned_R1 <- file.path(go_obj@settings$fastq_outdir, paste0(args$sample_name, "_READ1.fq"))
+		cleaned_R2 <- file.path(go_obj@settings$fastq_outdir, paste0(args$sample_name, "_READ2.fq"))
 
 		# Align reads using STAR.
 		command <- paste(
 			"STAR",
 			"--runThreadN", cores,
-			"--genomeDir", go_obj$star_index,
+			"--genomeDir", go_obj@settings$star_index,
 			"--readFilesIn", cleaned_R1, cleaned_R2,
-			"--outSamType BAM SortedByCoordinate",
+			"--outSAMtype BAM SortedByCoordinate",
 			"--outFileNamePrefix", file.path(outdir, paste0(args$sample_name, "_"))
 		)
 		system(command)
