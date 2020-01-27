@@ -1,0 +1,44 @@
+
+bootstrap: docker
+From: continuumio/miniconda3
+
+%post
+
+## Install C Compiler
+## ----------
+
+apt -y update
+apt -y install build-essential
+
+## Install conda environment.
+## ----------
+
+# Allow conda commands.
+. /opt/conda/etc/profile.d/conda.sh
+
+# Update conda.
+conda update -n base -y -c defaults conda
+
+# Install software available via conda environment.
+conda create -n gostripes -y -c conda-forge -c bioconda \
+star samtools fastqc r-tidyverse r-devtools \
+bioconductor-biostrings bioconductor-rsubread
+
+# Update conda environment.
+conda update -n gostripes -y -c conda-forge -c bioconda --all
+
+# Clean installation files for conda.
+conda clean -y --all
+
+## Install TagDust2.
+## ----------
+
+cd /opt
+
+wget --content-disposition https://sourceforge.net/projects/tagdust/files/tagdust-2.33.tar.gz/download
+tar -xzf tagdust-2.33.tar.gz
+cd tagdust-2.33/
+
+./configure
+make
+make install
