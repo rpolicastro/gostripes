@@ -10,5 +10,16 @@ Authors@R:
 Description: What the package does (one paragraph).
 License: What license it uses
 Encoding: UTF-8
+Imports:
+    S4Vectors,
+    methods,
+    BiocGenerics,
+    Biostrings,
+    GenomicAlignments, 
+    tibble,
+    dplyr,
+    purrr,
+    stringr,
+    magrittr     
 LazyData: true
 RoxygenNote: 7.0.2
