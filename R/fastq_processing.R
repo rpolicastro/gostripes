@@ -173,8 +173,8 @@ stash_umi <- function(deconned_R1, deconned_R2, sample_name, outdir, umi_pattern
 #'
 #' Remove spacer (TATA) and ribo-Gs (GGG) from 5' end of read
 #'
-#' @import S4Vectors
-#' @importFrom Biostrings DNAStringSet readDNAStringSet writeXStringSet subseq
+#' @importFrom ShortRead readFastq writeFastq
+#' @importFrom IRanges narrow
 #' @importFrom magrittr %>%
 #'
 #' @param stashed_R1 R1 read with UMI stashed in read name
@@ -188,24 +188,23 @@ stash_umi <- function(deconned_R1, deconned_R2, sample_name, outdir, umi_pattern
 #' @export
 
 remove_extra <- function(stashed_R1, stashed_R2, sample_name, outdir, extra_bases = "TATAGGG") {
-	
-	## Read in R1 read.
-	R1_read <- stashed_R1 %>%
-		readDNAStringSet(format = "fastq", with.qualities = TRUE) %>%
-		subseq(start = 8)
 
-	## Fix the quality scores.
-	mcols(R1_read)$qualities <- mcols(R1_read)$qualities %>%
-		subseq(start = 8)
-
-	## Read in R2 read.
-	R2_read <- readDNAStringSet(stashed_R2, format = "fastq", with.qualities = TRUE)
+	## Get trim ammount.
+	trim_length <- nchar(extra_bases) + 1
 
 	## Make new file names.
 	final_R1 <- file.path(outdir, paste0("final_", sample_name, "_R1.fastq"))
 	final_R2 <- file.path(outdir, paste0("final_", sample_name, "_R2.fastq"))
 
-	## Write to fastq files.
-	writeXStringSet(R1_read, final_R1, format = "fastq")
-	writeXStringSet(R2_read, final_R2, format = "fastq")
+
+	## Trim the R1 read.
+	stashed_R1 %>%
+		readFastq %>%
+		narrow(start = trim_length) %>%
+		writeFastq(final_R1, compress = FALSE)
+
+	## Read in R2 read.
+	stashed_R2 %>%
+		readFastq %>%
+		writeFastq(final_R2, compress = FALSE)
 }
