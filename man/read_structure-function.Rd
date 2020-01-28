@@ -7,6 +7,7 @@
 read_structure(
   R1_read,
   R2_read,
+  sample_name,
   outdir,
   structure_regex = "^[ATGCN]{8}TATAGGG"
 )
@@ -16,8 +17,12 @@ read_structure(
 
 \item{R2_read}{File name and directory for R2 read}
 
+\item{sample_name}{Name of the sample}
+
+\item{outdir}{Output directory for the properly structured reads}
+
 \item{structure_regex}{Regular expression for structure of read 5' end}
 }
 \description{
-Ensure proper structure of R1 read
+Ensure proper structure of R1 read, and remove spacer and ribo-Gs
 }

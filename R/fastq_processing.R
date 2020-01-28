@@ -4,7 +4,6 @@
 #' Remove rRNA contamination, low complexity reads, and trim UMI-Spacer-GGG
 #'
 #' @import tibble
-#' @importFrom Biostrings DNAStringSet writeXStringSet
 #' @importFrom stringr str_replace
 #' @importFrom purrr pwalk
 #' @importFrom magrittr %>%
@@ -29,15 +28,15 @@ process_reads <- function(go_obj, outdir, contamination_fasta, cores = 1) {
 		args <- list(...)
 
 		# Check for proper R1 read structure.
-		proper_reads <- read_structure(args$R1_read, args$R2_read, outdir)
+		read_structure(
+			args$R1_read, args$R2_read, 
+			args$sample_name, outdir
+		)
 
+		# TagDust2 to remove contaminants such as rRNA and low complexity reads.
 		proper_R1 <- file.path(outdir, paste0("proper_", args$sample_name, "_R1.fastq"))
 		proper_R2 <- file.path(outdir, paste0("proper_", args$sample_name, "_R2.fastq"))
 
-		writeXStringSet(proper_reads$R1, proper_R1, format = "fastq")
-		writeXStringSet(proper_reads$R2, proper_R2, format = "fastq")
-
-		# TagDust2 to remove contaminants such as rRNA and low complexity reads.
 		remove_contaminants(
 			proper_R1, proper_R2, args$sample_name,
 			contamination_fasta, outdir, cores
@@ -45,9 +44,21 @@ process_reads <- function(go_obj, outdir, contamination_fasta, cores = 1) {
 
 		# UMI-tools to stash UMI in read name.
 		deconned_R1 <- file.path(outdir, paste0("decon_", args$sample_name, "_READ1.fq"))
-		deconned_R2 <- file.path(otudir, paste0("decon_", args$sample_name, "_READ2.fq"))
+		deconned_R2 <- file.path(outdir, paste0("decon_", args$sample_name, "_READ2.fq"))
 		
-		stash_umi(deconned_R1, deconned_R2, args$sample_name, outdir)
+		stash_umi(
+			deconned_R1, deconned_R2,
+			args$sample_name, outdir
+		)
+
+		# Remove spacer and ribo-Gs.
+		stashed_R1 <- file.path(outdir, paste0("stashed_", args$sample_name, "_R1.fastq"))
+		stashed_R2 <- file.path(outdir, paste0("stashed_", args$sample_name, "_R2.fastq"))
+
+		remove_extra(
+			stashed_R1, stashed_R2,
+			args$sample_name, outdir
+		)
 	})
 
 	return(go_obj)
@@ -55,7 +66,7 @@ process_reads <- function(go_obj, outdir, contamination_fasta, cores = 1) {
 
 #' Check R1 Structure
 #'
-#' Ensure proper structure of R1 read
+#' Ensure proper structure of R1 read, and remove spacer and ribo-Gs
 #'
 #' @import tibble
 #' @importFrom stringr str_which
@@ -63,13 +74,15 @@ process_reads <- function(go_obj, outdir, contamination_fasta, cores = 1) {
 #'
 #' @param R1_read File name and directory for R1 read
 #' @param R2_read File name and directory for R2 read
+#' @param sample_name Name of the sample
+#' @param outdir Output directory for the properly structured reads
 #' @param structure_regex Regular expression for structure of read 5' end
 #'
 #' @rdname read_structure-function
 #'
 #' @export
 
-read_structure <- function(R1_read, R2_read, outdir, structure_regex = "^[ATGCN]{8}TATAGGG") {
+read_structure <- function(R1_read, R2_read, sample_name, outdir, structure_regex = "^[ATGCN]{8}TATAGGG") {
 
 	## Load up R1 read and check for reads matching proper R1 structure.
 	R1_data <- readDNAStringSet(R1_read, format = "fastq", with.qualities = TRUE)
@@ -80,7 +93,13 @@ read_structure <- function(R1_read, R2_read, outdir, structure_regex = "^[ATGCN]
 	R2_data <- readDNAStringSet(R2_read, format = "fastq", with.qualities = TRUE)
 	R2_keep <- R2_data[R1_keep_index]
 
-	return(list("R1" = R1_keep, "R2" = R2_keep))
+	## New sample names.
+	proper_R1 <- file.path(outdir, paste0("proper_", sample_name, "_R1.fastq"))
+	proper_R2 <- file.path(outdir, paste0("proper_", sample_name, "_R2.fastq"))
+
+	## Write samples to fastq files.
+	writeXStringSet(R1_keep, proper_R1, format = "fastq")
+	writeXStringSet(R2_keep, proper_R2, format = "fastq")
 }
 
 #' Remove Contaminants
@@ -91,6 +110,9 @@ read_structure <- function(R1_read, R2_read, outdir, structure_regex = "^[ATGCN]
 #'
 #' @param proper_R1 R1 reads with proper structure
 #' @param proper_R2 R2 reads where R1 had proper structure
+#' @param sample_name Name of the sample
+#' @param contamination_fasta Fasta file containing the contaminants
+#' @param outdir Output directory for decontaminated files
 #' @param cores Number of CPU cores available
 #'
 #' @rdname remove_contaminants-function
@@ -118,6 +140,7 @@ remove_contaminants <- function(proper_R1, proper_R2, sample_name, contamination
 #'
 #' @param deconned_R1 R1 read with contaminants removed
 #' @param deconned_R2 R2 read with contaminants removed
+#' @param sample_name Name of the sample
 #' @param outdir Output directory
 #' @param umi_pattern UMI pattern on 5' end of read
 #'
@@ -144,4 +167,45 @@ stash_umi <- function(deconned_R1, deconned_R2, sample_name, outdir, umi_pattern
 
 	## Run UMI-tools command.
 	system(command)	
+}
+
+#' Remove Extra
+#'
+#' Remove spacer (TATA) and ribo-Gs (GGG) from 5' end of read
+#'
+#' @import S4Vectors
+#' @importFrom Biostrings DNAStringSet readDNAStringSet writeXStringSet subseq
+#' @importFrom magrittr %>%
+#'
+#' @param stashed_R1 R1 read with UMI stashed in read name
+#' @param stashed_R2 R2 read with UMI stashed in read name
+#' @param sample_name Name of the sample
+#' @param outdir Output directory of reads with spacer adn ribo-Gs trimmed
+#' @param extra_bases The structure of the extra 5' bases
+#'
+#' @rdname remove_extra-function
+#'
+#' @export
+
+remove_extra <- function(stashed_R1, stashed_R2, sample_name, outdir, extra_bases = "TATAGGG") {
+	
+	## Read in R1 read.
+	R1_read <- stashed_R1 %>%
+		readDNAStringSet(format = "fastq", with.qualities = TRUE) %>%
+		subseq(start = 8)
+
+	## Fix the quality scores.
+	mcols(R1_read)$qualities <- mcols(R1_read)$qualities %>%
+		subseq(start = 8)
+
+	## Read in R2 read.
+	R2_read <- readDNAStringSet(stashed_R2, format = "fastq", with.qualities = TRUE)
+
+	## Make new file names.
+	final_R1 <- file.path(outdir, paste0("final_", sample_name, "_R1.fastq"))
+	final_R2 <- file.path(outdir, paste0("final_", sample_name, "_R2.fastq"))
+
+	## Write to fastq files.
+	writeXStringSet(R1_read, final_R1, format = "fastq")
+	writeXStringSet(R2_read, final_R2, format = "fastq")
 }

@@ -17,6 +17,8 @@ stash_umi(
 
 \item{deconned_R2}{R2 read with contaminants removed}
 
+\item{sample_name}{Name of the sample}
+
 \item{outdir}{Output directory}
 
 \item{umi_pattern}{UMI pattern on 5' end of read}

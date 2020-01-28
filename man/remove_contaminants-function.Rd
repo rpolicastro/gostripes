@@ -18,6 +18,12 @@ remove_contaminants(
 
 \item{proper_R2}{R2 reads where R1 had proper structure}
 
+\item{sample_name}{Name of the sample}
+
+\item{contamination_fasta}{Fasta file containing the contaminants}
+
+\item{outdir}{Output directory for decontaminated files}
+
 \item{cores}{Number of CPU cores available}
 }
 \description{
