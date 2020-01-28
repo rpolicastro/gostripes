@@ -64,8 +64,8 @@ align_reads <- function(go_obj, outdir, cores = 1) {
 		args <- list(...)
 
 		# Get names of cleaned and dusted fastq files.
-		cleaned_R1 <- file.path(go_obj@settings$fastq_outdir, paste0(args$sample_name, "_READ1.fq"))
-		cleaned_R2 <- file.path(go_obj@settings$fastq_outdir, paste0(args$sample_name, "_READ2.fq"))
+		cleaned_R1 <- file.path(go_obj@settings$fastq_outdir, paste0("final_", args$sample_name, "_R1.fastq"))
+		cleaned_R2 <- file.path(go_obj@settings$fastq_outdir, paste0("final_", args$sample_name, "_R2.fastq"))
 
 		# Align reads using STAR.
 		command <- paste(
