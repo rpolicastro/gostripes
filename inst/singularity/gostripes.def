@@ -20,7 +20,7 @@ conda update -n base -y -c defaults conda
 
 # Install software available via conda environment.
 conda create -n gostripes -y -c conda-forge -c bioconda \
-star samtools fastqc picard \
+star samtools fastqc picard umi_tools \
 r-tidyverse r-devtools \
 bioconductor-biostrings bioconductor-rsubread bioconductor-genomicalignments
 
