@@ -4,7 +4,7 @@
 \alias{call_TSRs}
 \title{Call TSRs}
 \usage{
-call_TSRs(go_obj, threshold, clust_dist)
+call_TSRs(go_obj, outdir)
 }
 \arguments{
 \item{go_obj}{gostripes object}

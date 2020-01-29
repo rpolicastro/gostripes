@@ -76,11 +76,13 @@ go_object <- align_reads(go_object, "./scratch/aligned", cores = 4)
 
 go_object <- process_bams(go_object, "./scratch/cleaned_bams", cores = 4)
 
-## Call TSSs.
+## Call TSSs and export as bedgraph.
 
 go_object <- call_TSSs(go_object)
+export_TSSs(go_object, "./scratch/TSSs")
 
-## Call TSRs using naive thresholding.
+## Call TSRs using naive thresholding and export as beds.
 
 go_object <- call_TSRs(go_object, 3, 25)
+export_TSRs(go_object, "./scratch/TSRs")
 ```

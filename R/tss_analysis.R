@@ -52,12 +52,52 @@ call_TSSs <- function(go_obj) {
 	return(go_obj)
 }
 
+#' Export TSSs
+#'
+#' Export TSSs as bedgraphs
+#'
+#' @importFrom GenomicRanges GRanges strand
+#' @importFrom rtracklayer export
+#' @importFrom purrr iwalk
+#'
+#' @param go_obj gostripes object
+#' @param outdir Output directory
+#'
+#' @rdname export_TSSs-function
+#'
+#' @export
+
+export_TSSs <- function(go_obj, outdir) {
+
+	## Make sure output directory exists.
+	if (!dir.exists(outdir)) {
+		dir.create(outdir, recursive = TRUE)
+	}
+
+	## Export TSSs as bedgraphs split by positive and negative strands.
+	iwalk(go_obj@TSSs, function(TSSs, sample_name) {
+
+		# Split TSSs into positive and negative strands.
+		pos_TSSs <- TSSs[strand(TSSs) == "+"]
+		neg_TSSs <- TSSs[strand(TSSs) == "-"]
+
+		# Create names of bedgraph files.
+		pos_bedgraph <- file.path(outdir, paste0("pos_", sample_name, ".bedgraph"))
+		neg_bedgraph <- file.path(outdir, paste0("neg_", sample_name, ".bedgraph"))
+
+		# Export bedgraphs.
+		export(pos_TSSs, pos_bedgraph, "bedgraph")
+		export(neg_TSSs, neg_bedgraph, "bedgraph")
+	})
+}
+
 #' Call TSRs
 #'
 #' Basic TSS clustering into TSRs based on naive global read threshold
 #'
 #' @import S4Vectors
 #' @importFrom GenomicRanges GRanges score reduce
+#' @importFrom purrr iwalk
 #'
 #' @param go_obj gostripes object
 #' @param threshold TSSs with read count below threshold will be discarded
@@ -88,4 +128,37 @@ call_TSRs <- function(go_obj, threshold, clust_dist) {
 
 	go_obj@TSRs <- TSRs
 	return(go_obj)
+}
+
+#' Export TSRs
+#'
+#' Export TSRs as bed files
+#'
+#' @importFrom GenomicRanges GRanges
+#' @importFrom rtracklayer export
+#' @importFrom purrr iwalk
+#'
+#' @param go_obj gostripes object
+#' @param outdir Output directory
+#'
+#' @rdname export_TSRs-function
+#'
+#' @export
+
+call_TSRs <- function(go_obj, outdir) {
+	
+	## Make sure output directory exists.
+	if (!dir.exists(outdir)) {
+		dir.create(outdir, recursive = TRUE)
+	}
+
+	## Export each TSR as a bed file.
+	iwalk(go_obj@TSRs, function(TSRs, sample_name) {
+		
+		# Create new bed file name.
+		TSR_bed <- file.path(outdir, paste0(sample_name, ".bed"))
+
+		# Export TSR bed file.
+		export(TSRs, TSR_bed, "bed")
+	})
 }
