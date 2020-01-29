@@ -23,7 +23,8 @@ conda create -n gostripes -y -c conda-forge -c bioconda \
 star samtools fastqc picard umi_tools \
 r-tidyverse r-devtools \
 bioconductor-biostrings bioconductor-rsubread \
-bioconductor-genomicalignments bioconductor-shortread
+bioconductor-genomicalignments bioconductor-shortread \
+bioconductor-genomicranges bioconductor-rtracklayer
 
 # Update conda environment.
 conda update -n gostripes -y -c conda-forge -c bioconda --all

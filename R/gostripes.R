@@ -11,11 +11,13 @@ setClass(
 	"gostripes",
 	representation(
 		sample_sheet = "data.frame",
-		settings = "list"
+		settings = "list",
+		TSSs = "list"
 	),
 	prototype(
 		sample_sheet = data.frame(),
-		settings = list()
+		settings = list(),
+		TSSs = list()
 	)
 )
 
