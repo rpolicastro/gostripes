@@ -46,7 +46,7 @@ R2_fastq <- system.file("extdata", "S288C_R2.fastq", package = "gostripes")
 
 ## Create example sample sheet.
 
-sample_sheet <- tibble(
+sample_sheet <- tibble::tibble(
 	"sample_name" = "stripeseq",
 	"replicate_ID" = 1,
 	"R1_read" = R1_fastq,
@@ -75,4 +75,8 @@ go_object <- align_reads(go_object, "./scratch/aligned", cores = 4)
 ## Process bams.
 
 go_object <- process_bams(go_object, "./scratch/cleaned_bams", cores = 4)
+
+## Call TSSs.
+
+go_object <- call_TSSs(go_object)
 ```
