@@ -17,12 +17,12 @@ Create a new scratch directory and navigate into it, and then follow the instruc
 
 Pull the singularity container from Sylabs Cloud.
 ```
-singularity pull --arch amd64 library://rpolicastro/default/gostripes:0.1.0
+singularity pull --arch amd64 library://rpolicastro/default/gostripes:0.2.0
 ```
 
 Shell into the container to gain access to the installed software.
 ```
-singularity shell -eCB "$(pwd)" -H "$(pwd)" gostripes_0.1.0.sif
+singularity shell -eCB "$(pwd)" -H "$(pwd)" gostripes_0.2.0.sif
 ```
 
 Activate the conda environment within the container, and start R.

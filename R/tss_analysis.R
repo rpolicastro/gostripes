@@ -97,7 +97,7 @@ export_TSSs <- function(go_obj, outdir) {
 #'
 #' @import S4Vectors
 #' @importFrom GenomicRanges GRanges score reduce
-#' @importFrom purrr iwalk
+#' @importFrom purrr map
 #'
 #' @param go_obj gostripes object
 #' @param threshold TSSs with read count below threshold will be discarded
@@ -116,11 +116,17 @@ call_TSRs <- function(go_obj, threshold, clust_dist) {
 		filtered_TSSs <- TSSs[score(TSSs) >= threshold]
 		clustered <- reduce(filtered_TSSs, with.revmap = TRUE, min.gapwidth = clust_dist + 1)
 
-		# Get the aggregated score of clustered TSSs.
-		cluster_scores <- aggregate(filtered_TSSs, mcols(clustered)$revmap, score = sum(score))
+		# Get the aggregated score and unique TSSs of clustered TSSs.
+		cluster_info <- aggregate(
+			filtered_TSSs,
+			mcols(clustered)$revmap,
+			score = sum(score),
+			n_unique = lengths(score)
+		)
 
-		# Add aggregated scores back to clustered TSSs.
-		clustered$score <- cluster_scores$score
+		# Add aggregated scores and unique TSS numbers back to clustered TSSs.
+		clustered$score <- cluster_info$score
+		clustered$n_unique <- cluster_info$n_unique
 		clustered$revmap <- NULL
 
 		return(clustered)
@@ -145,7 +151,7 @@ call_TSRs <- function(go_obj, threshold, clust_dist) {
 #'
 #' @export
 
-call_TSRs <- function(go_obj, outdir) {
+export_TSRs <- function(go_obj, outdir) {
 	
 	## Make sure output directory exists.
 	if (!dir.exists(outdir)) {

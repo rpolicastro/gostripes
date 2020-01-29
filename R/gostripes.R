@@ -12,12 +12,14 @@ setClass(
 	representation(
 		sample_sheet = "data.frame",
 		settings = "list",
-		TSSs = "list"
+		TSSs = "list",
+		TSRs = "list"
 	),
 	prototype(
 		sample_sheet = data.frame(),
 		settings = list(),
-		TSSs = list()
+		TSSs = list(),
+		TSRs = list()
 	)
 )
 
