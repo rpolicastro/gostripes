@@ -79,4 +79,8 @@ go_object <- process_bams(go_object, "./scratch/cleaned_bams", cores = 4)
 ## Call TSSs.
 
 go_object <- call_TSSs(go_object)
+
+## Call TSRs using naive thresholding.
+
+go_object <- call_TSRs(go_object, 3, 25)
 ```
