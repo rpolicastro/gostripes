@@ -32,7 +32,7 @@ call_TSSs <- function(go_obj) {
 			as_tibble(.name_repair = "unique", rownames = "qname") %>%
 			select(seqnames.first, strand.first, start.first, end.first) %>%
 			mutate(
-				"start" = ifelse(strand == "+", start.first, end.first),
+				"start" = ifelse(strand.first == "+", start.first, end.first),
 				"end" = start
 			) %>%
 			rename("seqnames" = seqnames.first, "strand" = strand.first) %>%
@@ -49,5 +49,43 @@ call_TSSs <- function(go_obj) {
 	## Add TSSs back to gostripes object.
 	go_obj@TSSs <- called_TSSs
 
+	return(go_obj)
+}
+
+#' Call TSRs
+#'
+#' Basic TSS clustering into TSRs based on naive global read threshold
+#'
+#' @import S4Vectors
+#' @importFrom GenomicRanges GRanges score reduce
+#'
+#' @param go_obj gostripes object
+#' @param threshold TSSs with read count below threshold will be discarded
+#' @param clust_dist TSSs within this number of base pairs will be clustered
+#'
+#' @rdname call_TSRs-function
+#'
+#' @export
+
+call_TSRs <- function(go_obj, threshold, clust_dist) {
+	
+	## Naive thresholding to discover TSS clusters (TSRs).
+	TSRs <- map(go_obj@TSSs, function(TSSs) {
+
+		# Filter TSSs below threshold and merge TSSs within clust_dist.
+		filtered_TSSs <- TSSs[score(TSSs) >= threshold]
+		clustered <- reduce(filtered_TSSs, with.revmap = TRUE, min.gapwidth = clust_dist + 1)
+
+		# Get the aggregated score of clustered TSSs.
+		cluster_scores <- aggregate(filtered_TSSs, mcols(clustered)$revmap, score = sum(score))
+
+		# Add aggregated scores back to clustered TSSs.
+		clustered$score <- cluster_scores$score
+		clustered$revmap <- NULL
+
+		return(clustered)
+	})
+
+	go_obj@TSRs <- TSRs
 	return(go_obj)
 }
