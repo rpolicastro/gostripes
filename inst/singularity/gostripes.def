@@ -52,4 +52,4 @@ make install
 export PATH=$PATH:/opt/conda/envs/gostripes/bin/
 
 # Install gostripes from github.
-R --slave -e 'Sys.setenv(TAR="/bin/tar");devtools::install_github("rpolicastro/gostripes",ref="master")'
+R --slave -e 'Sys.setenv(TAR="/bin/tar");devtools::install_github("rpolicastro/gostripes",ref="dev")'
