@@ -27,7 +27,13 @@ process_reads <- function(go_obj, outdir, contamination_fasta, cores = 1) {
 	pwalk(go_obj@sample_sheet, function(...) {
 		args <- list(...)
 
+		# Check fir paired end status.
+		seq_mode <- args$seq_mode
+
 		# Check for proper R1 read structure.
+		R1_read <- args$R1_read
+		R2_read <- ifelse(seq_mode == "paired", args$R2_read, NA) 
+
 		read_structure(
 			args$R1_read, args$R2_read, 
 			args$sample_name, outdir
@@ -89,17 +95,23 @@ read_structure <- function(R1_read, R2_read, sample_name, outdir, structure_rege
 	R1_keep_index <- str_which(R1_data, structure_regex)
 	R1_keep <- R1_data[R1_keep_index]
 
-	## Keep only R2 reads where the R1 pair wasn't filtered.
-	R2_data <- readDNAStringSet(R2_read, format = "fastq", with.qualities = TRUE)
-	R2_keep <- R2_data[R1_keep_index]
+	## If paired end keep only R2 reads where the R1 pair wasn't filtered.
+	if (!is.na(R2_read)) {
+		R2_data <- readDNAStringSet(R2_read, format = "fastq", with.qualities = TRUE)
+		R2_keep <- R2_data[R1_keep_index]
+	}
 
 	## New sample names.
 	proper_R1 <- file.path(outdir, paste0("proper_", sample_name, "_R1.fastq"))
-	proper_R2 <- file.path(outdir, paste0("proper_", sample_name, "_R2.fastq"))
+	if (!is.na(R2_read)) {
+		proper_R2 <- file.path(outdir, paste0("proper_", sample_name, "_R2.fastq"))
+	}
 
 	## Write samples to fastq files.
 	writeXStringSet(R1_keep, proper_R1, format = "fastq")
-	writeXStringSet(R2_keep, proper_R2, format = "fastq")
+	if (!is.na(R2_read)) {
+		writeXStringSet(R2_keep, proper_R2, format = "fastq")
+	}
 }
 
 #' Remove Contaminants
