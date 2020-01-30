@@ -4,7 +4,7 @@
 \alias{filter_flags}
 \title{Filter Flags}
 \usage{
-filter_flags(bam_file, sample_name, outdir, cores)
+filter_flags(bam_file, sample_name, outdir, seq_mode, cores)
 }
 \arguments{
 \item{bam_file}{Aligned bam file to process}
@@ -12,6 +12,8 @@ filter_flags(bam_file, sample_name, outdir, cores)
 \item{sample_name}{Name of sample}
 
 \item{outdir}{Output directory}
+
+\item{seq_mode}{Whether the run was paired-end or single-end}
 
 \item{cores}{Number of CPU cores available}
 }

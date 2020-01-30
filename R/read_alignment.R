@@ -85,6 +85,13 @@ align_reads <- function(go_obj, outdir, cores = 1) {
 			"--outFileNamePrefix", file.path(outdir, paste0(args$sample_name, "_"))
 		)
 		system(command)
+
+		# Index the aligned bams.
+		command <- paste(
+			"samtools index",
+			file.path(outdir, paste0(args$sample_name, "_Aligned.sortedByCoord.out.bam"))
+		)
+		system(command)
 	})
 
 	return(go_obj)

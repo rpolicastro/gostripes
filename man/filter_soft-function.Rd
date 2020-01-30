@@ -4,14 +4,16 @@
 \alias{filter_soft}
 \title{Filter Soft-clipped}
 \usage{
-filter_soft(flagfiltered_bam, sample_name, outdir)
+filter_soft(deduped_bam, sample_name, outdir, seq_mode)
 }
 \arguments{
-\item{flagfiltered_bam}{Bam file with PCR duplicates and undesirable flags filtered out}
-
 \item{sample_name}{Name of the sample}
 
 \item{outdir}{Output directory}
+
+\item{seq_mode}{Whether the bam is paired-end or single-end}
+
+\item{flagfiltered_bam}{Bam file with PCR duplicates and undesirable flags filtered out}
 }
 \description{
 Filter reads with too many soft-clipped bases
