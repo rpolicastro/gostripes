@@ -53,7 +53,10 @@ process_reads <- function(go_obj, outdir, contamination_fasta, cores = 1) {
 
 		# UMI-tools to stash UMI in read name.
 		deconned_R1 <- file.path(outdir, paste0("decon_", args$sample_name, "_READ1.fq"))
-		deconned_R2 <- file.path(outdir, paste0("decon_", args$sample_name, "_READ2.fq"))
+		deconned_R2 <- ifelse(
+			seq_mode == "paired",
+			file.path(outdir, paste0("decon_", args$sample_name, "_READ2.fq")), NA
+		)
 		
 		stash_umi(
 			deconned_R1, deconned_R2,
@@ -170,18 +173,27 @@ stash_umi <- function(deconned_R1, deconned_R2, sample_name, outdir, umi_pattern
 
 	## Output files.
 	stashed_R1 <- file.path(outdir, paste0("stashed_", sample_name, "_R1.fastq"))
-	stashed_R2 <- file.path(outdir, paste0("stashed_", sample_name, "_R2.fastq"))
+	if (!is.na(deconned_R2)) {
+		stashed_R2 <- file.path(outdir, paste0("stashed_", sample_name, "_R2.fastq"))
+	}
 
 	## Build UMI-tools command.
 	command <- paste(
-		"umi_tools extract",
-		"--extract-method=string",
-		paste0("--bc-pattern=", umi_pattern),
-		"-I", deconned_R1, "-S", stashed_R1,
-		paste0("--read2-in=", deconned_R2),
-		paste0("--read2-out=", stashed_R2),
-		"-L", file.path(outdir, paste0(sample_name, "_umi.log"))
-	)	
+                        "umi_tools extract",
+                        "--extract-method=string",
+                        paste0("--bc-pattern=", umi_pattern),
+			"-L", file.path(outdir, paste0(sample_name, "_umi.log")),
+			"-I", deconned_R1, "-S", stashed_R1
+	)
+
+	## Add paired end info to command if available.
+	if (!is.na(deconned_R2)) {
+		command <- paste(
+			command,
+			paste0("--read2-in=", deconned_R2),
+			paste0("--read2-out=", stashed_R2),
+		)
+	}
 
 	## Run UMI-tools command.
 	system(command)	
