@@ -29,8 +29,9 @@ setClass(
 #'
 #' @import methods
 #' @import tibble
+#' @importFrom dplyr mutate
 #'
-#' @param sample_sheet Sample sheet data.frame containing 'sample_name', 'replicate_ID", 'R1_read', and optionally 'R2_read'
+#' @param sample_sheet Sample sheet data.frame containing 'sample_name', 'replicate_ID", 'R1_read', and 'R2_read'
 #' @param cores Number of CPU cores/threads available
 #'
 #' @rdname gostripes
@@ -38,6 +39,15 @@ setClass(
 #' @export
 
 gostripes <- function(sample_sheet, cores = 1) {
+
+	## Check whether each sample is paired on unpaired.
+	sample_sheet <- sample_sheet %>%
+		mutate(seq_mode = ifelse(
+			is.na(R2_read) | R2_read %in% c("", " "),
+			"unpaired", "paired"
+		))
+
+	## Create gostripes object.
 	go_obj <- new(
 		"gostripes",
 		sample_sheet = sample_sheet,

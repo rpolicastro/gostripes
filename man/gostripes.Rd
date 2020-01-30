@@ -9,7 +9,7 @@
 gostripes(sample_sheet, cores = 1)
 }
 \arguments{
-\item{sample_sheet}{Sample sheet data.frame containing 'sample_name', 'replicate_ID", 'R1_read', and optionally 'R2_read'}
+\item{sample_sheet}{Sample sheet data.frame containing 'sample_name', 'replicate_ID", 'R1_read', and 'R2_read'}
 
 \item{cores}{Number of CPU cores/threads available}
 }
