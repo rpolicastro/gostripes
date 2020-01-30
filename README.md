@@ -86,3 +86,44 @@ export_TSSs(go_object, "./scratch/TSSs")
 go_object <- call_TSRs(go_object, 3, 25)
 export_TSRs(go_object, "./scratch/TSRs")
 ```
+
+## Detailed Start
+
+### Preparing Data
+
+gostripes takes demultiplexed STRIPE-seq fastq files as input, in either paired or single-end sequencing format.
+For paired end data it is important that the forward and reverse reads are in the same order in both files.
+
+gostripes is also able to handle multiple samples at the same time using a sample sheet.
+The sample sheet should have 4 columns: sample_name, replicate_ID, R1_read, R2_read.
+Each sample in a group of biological replicates should have the same replicate ID.
+The R1 and R2 reads should include the path to the file as well as the file name.
+If the samples were sequenced in single-end mode, you can leave the entries in R2_read blank.
+
+```
+library("gostripes")
+
+R1_fastq <- system.file("extdata", "S288C_R1.fastq", package = "gostripes")
+R2_fastq <- system.file("extdata", "S288C_R2.fastq", package = "gostripes")
+
+sample_sheet <- tibble::tibble(
+        "sample_name" = "stripeseq",
+        "replicate_ID" = 1,
+        "R1_read" = R1_fastq,
+        "R2_read" = R2_fastq
+)
+
+go_object <- gostripes(sample_sheet)
+```
+
+The first main step of STRIPE-seq analysis is the quality control and filtering of the fastq files.
+First, R1 read structure is ensured by looking for 'NNNNNNNNTATAGGG' at the beginning of the R1 read,
+which corresponds to the UMI:spacer:riboG of the template switching oligonucleotide.
+Second, the UMI is stashed in the read name, allowing it to be used for duplicate removal in single-end data (and optionally paired-end).
+Third, the remaining TATAGGG after UMI removal is trimmed.
+Finally, contaminant reads such as rRNA are filtered out.
+
+```
+rRNA <- system.file("extdata", "Sc_rRNA.fasta", package = "gostripes")
+go_object <- process_reads(go_object, "./scratch/cleaned_fastq", rRNA)
+```
