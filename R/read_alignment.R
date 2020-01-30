@@ -63,16 +63,24 @@ align_reads <- function(go_obj, outdir, cores = 1) {
 	pwalk(go_obj@sample_sheet, function(...) {
 		args <- list(...)
 
+		# Get sequencing mode for sample.
+		seq_mode <- args$seq_mode
+
 		# Get names of cleaned and dusted fastq files.
-		cleaned_R1 <- file.path(go_obj@settings$fastq_outdir, paste0("final_", args$sample_name, "_R1.fastq"))
-		cleaned_R2 <- file.path(go_obj@settings$fastq_outdir, paste0("final_", args$sample_name, "_R2.fastq"))
+		if (seq_mode == "paired") {
+			cleaned_R1 <- file.path(go_obj@settings$fastq_outdir, paste0("decon_", args$sample_name, "_READ1.fq"))
+			cleaned_R2 <- file.path(go_obj@settings$fastq_outdir, paste0("decon_", args$sample_name, "_READ2.fq"))
+			input_reads <- paste(cleaned_R1, cleaned_R2)
+		} else {
+			input_reads <- file.path(go_obj@settings$fastq_outdir, paste0("decon_", args$sample_name, ".fq"))
+		}
 
 		# Align reads using STAR.
 		command <- paste(
 			"STAR",
 			"--runThreadN", cores,
 			"--genomeDir", go_obj@settings$star_index,
-			"--readFilesIn", cleaned_R1, cleaned_R2,
+			"--readFilesIn", input_reads,
 			"--outSAMtype BAM SortedByCoordinate",
 			"--outFileNamePrefix", file.path(outdir, paste0(args$sample_name, "_"))
 		)
