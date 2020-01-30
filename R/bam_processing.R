@@ -169,7 +169,7 @@ filter_soft <- function(deduped_bam, sample_name, outdir, seq_mode) {
 
 	## Write read names to exclude to text file.
 	write.table(
-		R1_keep, file.path(outdir, paste0("softfiltered_", sample_name, ".txt")),
+		R1_keep, file.path(outdir, paste0("soft_", sample_name, ".txt")),
 		col.names = FALSE, row.names = FALSE, quote = FALSE
 	)
 
@@ -177,8 +177,8 @@ filter_soft <- function(deduped_bam, sample_name, outdir, seq_mode) {
 	command = paste(
 		"picard FilterSamReads",
 		paste0("I=", deduped_bam),
-		paste0("O=", file.path(outdir, paste0("softfiltered_", sample_name, ".bam"))),
-		paste0("READ_LIST_FILE=", file.path(outdir, paste0("softfiltered_", sample_name, ".txt"))),
+		paste0("O=", file.path(outdir, paste0("soft_", sample_name, ".bam"))),
+		paste0("READ_LIST_FILE=", file.path(outdir, paste0("soft_", sample_name, ".txt"))),
 		"FILTER=excludeReadList"
 	)
 	system(command)
@@ -186,7 +186,7 @@ filter_soft <- function(deduped_bam, sample_name, outdir, seq_mode) {
 	## Index the bams.
 	command <- paste(
 		"samtools index",
-		file.path(outdir, paste0("softfiltered_", sample_name, ".bam"))
+		file.path(outdir, paste0("soft_", sample_name, ".bam"))
 	)
 	system(command)
 }

@@ -5,7 +5,7 @@
 #'
 #' @import tibble
 #' @importFrom GenomicRanges GRanges makeGRangesFromDataFrame
-#' @importFrom GenomicAlignments readGAlignmentPairs GAlignmentPairs
+#' @importFrom GenomicAlignments readGAlignmentPairs readGAlignments
 #' @importFrom dplyr select rename mutate count pull
 #' @importFrom purrr pmap
 #' @importFrom magrittr %>% set_names
@@ -22,21 +22,40 @@ call_TSSs <- function(go_obj) {
 	called_TSSs <- pmap(go_obj@sample_sheet, function(...) {
 		args <- list(...)
 
-		# Bam file to analyze.
-		final_bam <- file.path(go_obj@settings$bam_dir, paste0("final_", args$sample_name, ".bam"))
+		# Check whether paired or sing-end.
+		seq_mode <- args$seq_mode
 
-		# Read bam into memory and call TSSs.
-		TSSs <- final_bam %>%
-			readGAlignmentPairs(use.names = TRUE) %>%
-			as.data.frame %>%
-			as_tibble(.name_repair = "unique", rownames = "qname") %>%
-			select(seqnames.first, strand.first, start.first, end.first) %>%
-			mutate(
-				"start" = ifelse(strand.first == "+", start.first, end.first),
-				"end" = start
-			) %>%
-			rename("seqnames" = seqnames.first, "strand" = strand.first) %>%
-			select(-start.first, -end.first) %>%
+		# Bam file to analyze.
+		final_bam <- file.path(go_obj@settings$bam_dir, paste0("soft_", args$sample_name, ".bam"))
+
+		# Read paired-end bam into memory and grab TSSs.
+		if (seq_mode == "paired") {
+			TSSs <- final_bam %>%
+				readGAlignmentPairs(use.names = TRUE) %>%
+				as.data.frame %>%
+				as_tibble(.name_repair = "unique", rownames = "qname") %>%
+				select(seqnames.first, strand.first, start.first, end.first) %>%
+				mutate(
+					"start" = ifelse(strand.first == "+", start.first, end.first),
+					"end" = start
+				) %>%
+				rename("seqnames" = seqnames.first, "strand" = strand.first) %>%
+				select(-start.first, -end.first)
+		# Read single-end bam into memory and grab TSSs.
+		} else {
+			TSSs <- final_bam %>%
+				readGAlignments(use.name = TRUE) %>%
+				as.data.frame %>%
+				as_tibble(.name_repair = "unique", rownames = "qname") %>%
+				select(seqnames, strand, start, end) %>%
+				mutate(
+					"start" = ifelse(strand == "+", start, end),
+					"end" = start
+				)
+		}
+
+		# Aggregate and sum overlapping TSSs.
+		TSSs <- TSSs %>%
 			count(seqnames, start, end, strand, name = "score") %>%
 			makeGRangesFromDataFrame(keep.extra.columns = TRUE)
 
@@ -48,7 +67,6 @@ call_TSSs <- function(go_obj) {
 
 	## Add TSSs back to gostripes object.
 	go_obj@TSSs <- called_TSSs
-
 	return(go_obj)
 }
 
