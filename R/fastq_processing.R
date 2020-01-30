@@ -39,27 +39,15 @@ process_reads <- function(go_obj, outdir, contamination_fasta, cores = 1) {
 			args$sample_name, outdir
 		)
 
-		# TagDust2 to remove contaminants such as rRNA and low complexity reads.
+		# UMI-tools to stash UMI in read name.
 		proper_R1 <- file.path(outdir, paste0("proper_", args$sample_name, "_R1.fastq"))
 		proper_R2 <- ifelse(
 			seq_mode == "paired",
 			file.path(outdir, paste0("proper_", args$sample_name, "_R2.fastq")), NA
 		)
 
-		remove_contaminants(
-			proper_R1, proper_R2, args$sample_name,
-			contamination_fasta, outdir, cores
-		)
-
-		# UMI-tools to stash UMI in read name.
-		deconned_R1 <- file.path(outdir, paste0("decon_", args$sample_name, "_READ1.fq"))
-		deconned_R2 <- ifelse(
-			seq_mode == "paired",
-			file.path(outdir, paste0("decon_", args$sample_name, "_READ2.fq")), NA
-		)
-		
 		stash_umi(
-			deconned_R1, deconned_R2,
+			proper_R1, proper_R2,
 			args$sample_name, outdir
 		)
 
@@ -74,6 +62,19 @@ process_reads <- function(go_obj, outdir, contamination_fasta, cores = 1) {
 			stashed_R1, stashed_R2,
 			args$sample_name, outdir
 		)
+
+		# TagDust2 to remove contaminants such as rRNA and low complexity reads.
+		trimmed_R1 <- file.path(outdir, paste0("trimmed_", args$sample_name, "_R1.fastq"))
+		trimmed_R2 <- ifelse(
+			seq_mode == "paired",
+			file.path(outdir, paste0("trimmed_", args$sample_name, "_R2.fastq")), NA
+		)
+
+		remove_contaminants(
+			trimmed_R1, trimmed_R2, args$sample_name,
+			contamination_fasta, outdir, cores
+		)
+
 	})
 
 	return(go_obj)
@@ -140,7 +141,7 @@ read_structure <- function(R1_read, R2_read, sample_name, outdir, structure_rege
 #'
 #' @export
 
-remove_contaminants <- function(proper_R1, proper_R2, sample_name, contamination_fasta, outdir, cores) {
+remove_contaminants <- function(trimmed_R1, trimmed_R2, sample_name, contamination_fasta, outdir, cores) {
 
 	## Build TagDust2 command.
 	command <- paste(
@@ -148,11 +149,11 @@ remove_contaminants <- function(proper_R1, proper_R2, sample_name, contamination
 		"-ref", contamination_fasta,
 		"-fe 3", "-t", cores, "-dust 97",
 		"-o", file.path(outdir, paste0("decon_", sample_name)), "-1 R:N",
-		proper_R1
+		trimmed_R1
 	)
 
 	## Add paired end read if available.
-	if (!is.na(proper_R2)) {command <- paste(command, proper_R2)}
+	if (!is.na(trimmed_R2)) {command <- paste(command, trimmed_R2)}
 	
 	## Run TagDust2 command.
 	system(command)
@@ -172,11 +173,11 @@ remove_contaminants <- function(proper_R1, proper_R2, sample_name, contamination
 #'
 #' @export
 
-stash_umi <- function(deconned_R1, deconned_R2, sample_name, outdir, umi_pattern = "NNNNNNNN") {
+stash_umi <- function(proper_R1, proper_R2, sample_name, outdir, umi_pattern = "NNNNNNNN") {
 
 	## Output files.
 	stashed_R1 <- file.path(outdir, paste0("stashed_", sample_name, "_R1.fastq"))
-	if (!is.na(deconned_R2)) {
+	if (!is.na(proper_R2)) {
 		stashed_R2 <- file.path(outdir, paste0("stashed_", sample_name, "_R2.fastq"))
 	}
 
@@ -186,15 +187,15 @@ stash_umi <- function(deconned_R1, deconned_R2, sample_name, outdir, umi_pattern
                         "--extract-method=string",
                         paste0("--bc-pattern=", umi_pattern),
 			"-L", file.path(outdir, paste0(sample_name, "_umi.log")),
-			"-I", deconned_R1, "-S", stashed_R1
+			"-I", proper_R1, "-S", stashed_R1
 	)
 
 	## Add paired end info to command if available.
-	if (!is.na(deconned_R2)) {
+	if (!is.na(proper_R2)) {
 		command <- paste(
 			command,
-			paste0("--read2-in=", deconned_R2),
-			paste0("--read2-out=", stashed_R2),
+			paste0("--read2-in=", proper_R2),
+			paste0("--read2-out=", stashed_R2)
 		)
 	}
 
@@ -226,21 +227,21 @@ remove_extra <- function(stashed_R1, stashed_R2, sample_name, outdir, extra_base
 	trim_length <- nchar(extra_bases) + 1
 
 	## Make new file names.
-	final_R1 <- file.path(outdir, paste0("final_", sample_name, "_R1.fastq"))
+	trimmed_R1 <- file.path(outdir, paste0("trimmed_", sample_name, "_R1.fastq"))
 	if (!is.na(stashed_R2)) {
-		final_R2 <- file.path(outdir, paste0("final_", sample_name, "_R2.fastq"))
+		trimmed_R2 <- file.path(outdir, paste0("trimmed_", sample_name, "_R2.fastq"))
 	}
 
 	## Trim the R1 read.
 	stashed_R1 %>%
 		readFastq %>%
 		narrow(start = trim_length) %>%
-		writeFastq(final_R1, compress = FALSE)
+		writeFastq(trimmed_R1, compress = FALSE)
 
 	## Read in R2 read if available.
 	if (!is.na(stashed_R2)) {
 		stashed_R2 %>%
 			readFastq %>%
-			writeFastq(final_R2, compress = FALSE)
+			writeFastq(trimmed_R2, compress = FALSE)
 	}
 }

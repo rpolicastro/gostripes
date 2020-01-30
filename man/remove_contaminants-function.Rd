@@ -5,8 +5,8 @@
 \title{Remove Contaminants}
 \usage{
 remove_contaminants(
-  proper_R1,
-  proper_R2,
+  trimmed_R1,
+  trimmed_R2,
   sample_name,
   contamination_fasta,
   outdir,
@@ -14,10 +14,6 @@ remove_contaminants(
 )
 }
 \arguments{
-\item{proper_R1}{R1 reads with proper structure}
-
-\item{proper_R2}{R2 reads where R1 had proper structure}
-
 \item{sample_name}{Name of the sample}
 
 \item{contamination_fasta}{Fasta file containing the contaminants}
@@ -25,6 +21,10 @@ remove_contaminants(
 \item{outdir}{Output directory for decontaminated files}
 
 \item{cores}{Number of CPU cores available}
+
+\item{proper_R1}{R1 reads with proper structure}
+
+\item{proper_R2}{R2 reads where R1 had proper structure}
 }
 \description{
 Remove low complexity reads and contaminant reads such as rRNA

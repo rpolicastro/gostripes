@@ -4,24 +4,18 @@
 \alias{stash_umi}
 \title{Stash UMI}
 \usage{
-stash_umi(
-  deconned_R1,
-  deconned_R2,
-  sample_name,
-  outdir,
-  umi_pattern = "NNNNNNNN"
-)
+stash_umi(proper_R1, proper_R2, sample_name, outdir, umi_pattern = "NNNNNNNN")
 }
 \arguments{
-\item{deconned_R1}{R1 read with contaminants removed}
-
-\item{deconned_R2}{R2 read with contaminants removed}
-
 \item{sample_name}{Name of the sample}
 
 \item{outdir}{Output directory}
 
 \item{umi_pattern}{UMI pattern on 5' end of read}
+
+\item{deconned_R1}{R1 read with contaminants removed}
+
+\item{deconned_R2}{R2 read with contaminants removed}
 }
 \description{
 Add UMI to read name to facilitate PCR duplicate removal
