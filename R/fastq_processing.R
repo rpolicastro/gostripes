@@ -41,7 +41,10 @@ process_reads <- function(go_obj, outdir, contamination_fasta, cores = 1) {
 
 		# TagDust2 to remove contaminants such as rRNA and low complexity reads.
 		proper_R1 <- file.path(outdir, paste0("proper_", args$sample_name, "_R1.fastq"))
-		proper_R2 <- file.path(outdir, paste0("proper_", args$sample_name, "_R2.fastq"))
+		proper_R2 <- ifelse(
+			seq_mode == "paired",
+			file.path(outdir, paste0("proper_", args$sample_name, "_R2.fastq")), NA
+		)
 
 		remove_contaminants(
 			proper_R1, proper_R2, args$sample_name,
@@ -139,8 +142,11 @@ remove_contaminants <- function(proper_R1, proper_R2, sample_name, contamination
 		"-ref", contamination_fasta,
 		"-fe 3", "-t", cores, "-dust 97",
 		"-o", file.path(outdir, paste0("decon_", sample_name)), "-1 R:N",
-		proper_R1, proper_R2
+		proper_R1
 	)
+
+	## Add paired end read if available.
+	if (!is.na(proper_R2)) {command <- paste(command, proper_R2)}
 	
 	## Run TagDust2 command.
 	system(command)
