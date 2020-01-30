@@ -65,7 +65,10 @@ process_reads <- function(go_obj, outdir, contamination_fasta, cores = 1) {
 
 		# Remove spacer and ribo-Gs.
 		stashed_R1 <- file.path(outdir, paste0("stashed_", args$sample_name, "_R1.fastq"))
-		stashed_R2 <- file.path(outdir, paste0("stashed_", args$sample_name, "_R2.fastq"))
+		stashed_R2 <- ifelse(
+			seq_mode == "paired",
+			file.path(outdir, paste0("stashed_", args$sample_name, "_R2.fastq")), NA
+		)
 
 		remove_extra(
 			stashed_R1, stashed_R2,
@@ -224,8 +227,9 @@ remove_extra <- function(stashed_R1, stashed_R2, sample_name, outdir, extra_base
 
 	## Make new file names.
 	final_R1 <- file.path(outdir, paste0("final_", sample_name, "_R1.fastq"))
-	final_R2 <- file.path(outdir, paste0("final_", sample_name, "_R2.fastq"))
-
+	if (!is.na(stashed_R2)) {
+		final_R2 <- file.path(outdir, paste0("final_", sample_name, "_R2.fastq"))
+	}
 
 	## Trim the R1 read.
 	stashed_R1 %>%
@@ -233,8 +237,10 @@ remove_extra <- function(stashed_R1, stashed_R2, sample_name, outdir, extra_base
 		narrow(start = trim_length) %>%
 		writeFastq(final_R1, compress = FALSE)
 
-	## Read in R2 read.
-	stashed_R2 %>%
-		readFastq %>%
-		writeFastq(final_R2, compress = FALSE)
+	## Read in R2 read if available.
+	if (!is.na(stashed_R2)) {
+		stashed_R2 %>%
+			readFastq %>%
+			writeFastq(final_R2, compress = FALSE)
+	}
 }
