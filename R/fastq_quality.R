@@ -4,6 +4,8 @@
 #' Generate quality reports for FASTQ files
 #'
 #' @import tibble
+#' @importFrom dplyr filter pull mutate
+#' @importFrom purrr pmap reduce
 #'
 #' @param go_obj gostripes object
 #' @param outdir Output directory for FastQC reports
@@ -15,11 +17,74 @@
 #' @export
 
 fastq_quality <- function(go_obj, outdir, fastq_type = "both", cores = 1) {
+
+	## Make soure output directory exists.
+	if (!dir.exists(outdir)) {
+		dir.create(outdir, recursive = TRUE)
+	}
 	
-	## Get samples to analyze.
+	## Select raw R1 and R2 reads if required.
 	if (fastq_type %in% c("both", "raw")) {
 		raw_R1s <- pull(go_obj@sample_sheet, "R1_read")
 		raw_R2s <- go_obj@sample_sheet %>%
+			filter(seq_mode == "paired") %>%
 			pull("R2_read")
+
+		if (length(raw_R2s) == 0) {
+			raw_fastqs <- raw_R1s
+		} else {
+			raw_fastqs <- c(raw_R1s, raw_R2s)
+		}
 	}
+
+	## Select processed fastq files if required.
+	if (fastq_type %in% c("both", "processed")) {
+		processed_fastqs <- pmap(go_obj@sample_sheet, function(...) {
+			args <- list(...)			
+
+			# Get sequencing mode.
+			seq_mode <- args$seq_mode
+
+			# Prepare R1 read.
+			processed_R1 <- ifelse(
+				seq_mode == "paired",
+				file.path(go_obj@settings$fastq_outdir, paste0("decon_", args$sample_name, "_READ1.fq")),
+				file.path(go_obj@settings$fastq_outdir, paste0("decon_", args$sample_name, ".fq"))
+			)
+
+			# Prepare R2 read if paired end.
+			if (seq_mode == "paired") {
+				processed_R2 <- file.path(
+					go_obj@settings$fastq_outdir,
+					paste0("decon_", args$sample_name, "_READ2.fq")
+				)
+			}
+
+			# Return the list of processed fastq files.
+			if (seq_mode == "paired") {
+				processed_fastqs <- c(processed_R1, processed_R2)
+			} else {
+				processed_fastqs <- processed_R1
+			}
+		
+			return(processed_fastqs)
+		}) %>%
+		reduce(c)
+	}
+
+	## Create complete list of FASTQ files to analyze.
+	if (fastq_type == "raw") {
+		fastqs <- raw_fastqs
+	} else if (fastq_type == "processed") {
+		fastqs <- processed_fastqs
+	} else {
+		fastqs <- c(raw_fastqs, processed_fastqs)
+	}
+
+	## Run FastQC quality control on FASTQ files.
+	command <- paste("fastqc -t", cores, "-o", outdir, paste0(fastqs, collapse = " "))
+	system(command)
+
+	go_obj@settings$fastqc_outdir <- outdir
+	return(go_obj)
 }

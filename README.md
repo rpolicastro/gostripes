@@ -63,6 +63,7 @@ sample_sheet <- tibble::tibble(
 
 go_object <- gostripes(sample_sheet) %>%
 	process_reads("./scratch/cleaned_fastq", rRNA) %>%
+	fastq_quality("./scratch/fastqc_reports", cores = 4) %>%
 	genome_index(assembly, annotation, "./scratch/genome_index", cores = 4) %>%
 	align_reads("./scratch/aligned", cores = 4) %>%
 	process_bams("./scratch/cleaned_bams", cores = 4)
