@@ -106,6 +106,7 @@ sample_sheet <- tibble::tibble(
 
 go_object <- gostripes(sample_sheet)
 ```
+### Quality Control of fastq Files
 
 The first main step of STRIPE-seq analysis is the quality control and filtering of the fastq files.
 First, R1 read structure is ensured by looking for 'NNNNNNNNTATAGGG' at the beginning of the R1 read,
