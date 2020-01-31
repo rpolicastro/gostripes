@@ -1,6 +1,6 @@
-# gostripes
+# gostripesR v0.2.0
 
-Processing of raw STRIPE-seq files.
+Processing and quality control of STRIPE-seq FASTQ files.
 
 ## Preparing Required Software
 
