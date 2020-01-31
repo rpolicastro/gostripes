@@ -122,9 +122,14 @@ Third, the remaining TATAGGG after UMI removal is trimmed.
 Finally, contaminant reads such as rRNA are filtered out.
 This requires a FASTA file containing the contaminant sequences to search against.
 
+As further quality assurance FastQC quality reports are generated both for the raw FASTQ files,
+and the processed FASTQ files.
+
 ```
 rRNA <- system.file("extdata", "Sc_rRNA.fasta", package = "gostripes")
+
 go_object <- process_reads(go_object, "./scratch/cleaned_fastq", rRNA)
+go_object <- fastq_quality(go_object, "./scratch/fastqc_reports", cores = 4)
 ```
 
 ### Aligning Reads to Genome
