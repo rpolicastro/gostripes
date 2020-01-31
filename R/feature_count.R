@@ -5,8 +5,9 @@
 #'
 #' @import tibble
 #' @importFrom Rsubread featureCounts
-#' @importFrom purrr map
-#' @importFrom dplyr pull
+#' @importFrom purrr map imap reduce
+#' @importFrom dplyr pull left_join
+#' @importFrom stringr str_replace
 #'
 #' @param go_obj gostripes object
 #' @param genome_annotation Genome annotation in GTF file format
@@ -21,10 +22,11 @@ count_features <- function(go_obj, genome_annotation, cores = 1) {
 	## Separate paired-end and single-end reads.
 	seq_status <- go_obj@sample_sheet %>%
 		split(.$seq_mode) %>%
-		map(
-			~ pull(., "sample_name") %>%
-			file.path(go_obj@settings$bam_dir, paste0("soft_", ., ".bam"))
-		)
+		map(function(x) {
+			samp_names <- pull(x, "sample_name")
+			samp_names <- file.path(go_obj@settings$bam_dir, paste0("soft_", samp_names, ".bam"))
+			return(samp_names)
+		})
 
 	## Build featureCounts command.
 	counts <- imap(seq_status, function(bams, seq_mode) {
@@ -65,8 +67,45 @@ count_features <- function(go_obj, genome_annotation, cores = 1) {
 			)
 		}
 
+		# Extract feature counts and remove .bam from sample names.
+		feature_counts <- feature_counts$counts %>%
+			as_tibble(.name_repair = "unique", rownames = "gene_id")
+		colnames(feature_counts) <- str_replace(colnames(feature_counts), "\\.bam$", "")
+
 		return(feature_counts)
 	})
 
 	## Merge counts.
+	counts <- reduce(counts, left_join, by = "gene_id")
+
+	## Add counts back to gostripes object.
+	go_obj@feature_counts <- counts
+	return(go_obj)
+}
+
+#' Export Feature Counts
+#'
+#' Export feature counts as a table
+#'
+#' @import tibble
+#'
+#' @param go_obj gostripes object
+#' @param outdir Output directory for table
+#'
+#' @rdname export_counts-function
+#'
+#' @export
+
+export_counts <- function(go_obj, outdir) {
+
+	## Ensure output directory exists.
+	if (!dir.exists(outdir)) {
+		dir.create(outdir, recursive = TRUE)
+	}
+
+	## Export the counts to a table.
+	write.table(
+		go_obj@feature_counts, file.path(outdir, "feature_counts.tsv"),
+		col.names = TRUE, row.names = FALSE, sep = "\t", quote = FALSE
+	)
 }

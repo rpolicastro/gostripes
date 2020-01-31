@@ -13,13 +13,15 @@ setClass(
 		sample_sheet = "data.frame",
 		settings = "list",
 		TSSs = "list",
-		TSRs = "list"
+		TSRs = "list",
+		feature_counts = "data.frame"
 	),
 	prototype(
 		sample_sheet = data.frame(),
 		settings = list(),
 		TSSs = list(),
-		TSRs = list()
+		TSRs = list(),
+		feature_counts = data.frame()
 	)
 )
 

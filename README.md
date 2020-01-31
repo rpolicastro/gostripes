@@ -67,6 +67,11 @@ go_object <- gostripes(sample_sheet) %>%
 	align_reads("./scratch/aligned", cores = 4) %>%
 	process_bams("./scratch/cleaned_bams", cores = 4)
 
+## Count features and export feature counts table.
+
+go_object <- count_features(go_object, annotation, cores = 4)
+export_counts(go_object, "./scratch/counts")
+
 ## Call TSSs and export as BEDGRAPH.
 
 go_object <- call_TSSs(go_object)
@@ -146,10 +151,21 @@ Second, any TSS that has more than 3 soft-clipped bases adjacent to it is remove
 ```
 go_object <- process_bams(go_object, "./scratch/cleaned_bams", cores = 4)
 ```
+### Feature Counting
+
+After the quality contol steps, the resulting BAMs can be used for RNA-seq like feature counting.
+Each read or read-pair will be assigned to the closest overlapping exon,
+and a summary of overlapping read counts will be produced for each gene.
+These feature counts can then optionally be exported as a table.
+
+```
+go_object <- count_features(go_object, annotation, cores = 4)
+export_counts(go_object, "./scratch/counts")
+```
 
 ### Rudimantary TSS and TSR Calling
 
-After the quality contol steps, the resulting BAMs are ready for TSS and TSS cluster (TSR or cTSS) analysis.
+The final BAMs are also ready for TSS and TSS cluster (TSR or cTSS) analysis.
 There are many great software suites available for this, including
 [TSRchitect](https://bioconductor.org/packages/release/bioc/html/TSRchitect.html),
 [CAGEr](https://bioconductor.org/packages/release/bioc/html/CAGEr.html),
