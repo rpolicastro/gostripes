@@ -147,7 +147,7 @@ Second, any TSS that has more than 3 soft-clipped bases adjacent to it is remove
 go_object <- process_bams(go_object, "./scratch/cleaned_bams", cores = 4)
 ```
 
-### Rudimantary TSS and TSR calling
+### Rudimantary TSS and TSR Calling
 
 After the quality contol steps, the resulting BAMs are ready for TSS and TSS cluster (TSR or cTSS) analysis.
 There are many great software suites available for this, including TSRchitect, CAGEr, ADAPT-CAGE, and CAGEfightR.
