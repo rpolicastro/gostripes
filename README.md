@@ -150,7 +150,11 @@ go_object <- process_bams(go_object, "./scratch/cleaned_bams", cores = 4)
 ### Rudimantary TSS and TSR Calling
 
 After the quality contol steps, the resulting BAMs are ready for TSS and TSS cluster (TSR or cTSS) analysis.
-There are many great software suites available for this, including TSRchitect, CAGEr, ADAPT-CAGE, and CAGEfightR.
+There are many great software suites available for this, including
+[TSRchitect](https://bioconductor.org/packages/release/bioc/html/TSRchitect.html),
+[CAGEr](https://bioconductor.org/packages/release/bioc/html/CAGEr.html),
+[ADAPT-CAGE](https://gitlab.com/dianalab/adapt-cage), and
+[CAGEfightR](https://bioconductor.org/packages/release/bioc/html/CAGEfightR.html).
 For convenience, gostripes includes some rudimentary functions for basic TSS and TSR calling.
 
 Although 5' ends with 3 or less soft-clipped bases are retained in the bam quality control steps, those bases are not considered when calling TSSs.
@@ -165,3 +169,16 @@ export_TSSs(go_object, "./scratch/TSSs")
 go_object <- call_TSRs(go_object, 3, 25)
 export_TSRs(go_object, "./scratch/TSRs")
 ```
+
+## Acknowledgments
+
+The development of gostripes would not be possible without these great software packages.
+
+* [FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/): FASTQ qauality control.
+* [TagDust 2](http://tagdust.sourceforge.net/): FASTQ read filtering.
+* [STAR](https://github.com/alexdobin/STAR): Short read sequence aligner.
+* [Samtools](http://www.htslib.org/): SAM/BAM file manipulation.
+* [Picard](https://broadinstitute.github.io/picard/): Manipulation of SAM/BAM files.
+
+A special shoutout to the [tidyverse](https://www.tidyverse.org/) for making data science in R easy.
+Also, a sincere thank you to [Bioconductor](http://bioconductor.org/) and it's varied contributors for hosting so many invaluable tools.
