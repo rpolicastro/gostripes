@@ -67,12 +67,12 @@ go_object <- gostripes(sample_sheet) %>%
 	align_reads("./scratch/aligned", cores = 4) %>%
 	process_bams("./scratch/cleaned_bams", cores = 4)
 
-## Call TSSs and export as bedgraph.
+## Call TSSs and export as BEDGRAPH.
 
 go_object <- call_TSSs(go_object)
 export_TSSs(go_object, "./scratch/TSSs")
 
-## Call TSRs using naive thresholding and export as beds.
+## Call TSRs using naive thresholding and export as BEDs.
 
 go_object <- call_TSRs(go_object, 3, 25)
 export_TSRs(go_object, "./scratch/TSRs")
@@ -82,7 +82,7 @@ export_TSRs(go_object, "./scratch/TSRs")
 
 ### Preparing Data
 
-gostripes takes demultiplexed STRIPE-seq fastq files as input, in either paired or single-end sequencing format.
+gostripes takes demultiplexed STRIPE-seq FASTQ files as input, in either paired or single-end sequencing format.
 For paired end data it is important that the forward and reverse reads are in the same order in both files.
 
 gostripes is also able to handle multiple samples at the same time using a sample sheet.
@@ -106,15 +106,15 @@ sample_sheet <- tibble::tibble(
 
 go_object <- gostripes(sample_sheet)
 ```
-### Quality Control of fastq Files
+### Quality Control of FASTQ Files
 
-The first main step of STRIPE-seq analysis is the quality control and filtering of the fastq files.
+The first main step of STRIPE-seq analysis is the quality control and filtering of the FASTQ files.
 First, R1 read structure is ensured by looking for 'NNNNNNNNTATAGGG' at the beginning of the R1 read,
 which corresponds to the UMI:spacer:riboG of the template switching oligonucleotide.
 Second, the UMI is stashed in the read name, allowing it to be used for duplicate removal in single-end data (and optionally paired-end).
 Third, the remaining TATAGGG after UMI removal is trimmed.
 Finally, contaminant reads such as rRNA are filtered out.
-This requires a fasta file containing the contaminant sequences to search against.
+This requires a FASTA file containing the contaminant sequences to search against.
 
 ```
 rRNA <- system.file("extdata", "Sc_rRNA.fasta", package = "gostripes")
@@ -123,9 +123,9 @@ go_object <- process_reads(go_object, "./scratch/cleaned_fastq", rRNA)
 
 ### Aligning Reads to Genome
 
-After quality control of the fastq files, the reads can then be mapped to the genome.
-First, a STAR genome index is generated from the fasta genome alignment and genome annotation file.
-Then, the fastq files are mapped to the genome using this index.
+After quality control of the FASTQ files, the reads can then be mapped to the genome.
+First, a STAR genome index is generated from the FASTA genome assembly and GTF genome annotation file.
+Then, the FASTQ files are mapped to the genome using this index.
 
 ```
 assembly <- system.file("extdata", "Saccharomyces_cerevisiae.R64-1-1.dna_sm.toplevel.fa", package = "gostripes")
@@ -137,25 +137,26 @@ go_object <- align_reads(go_object, "./scratch/aligned", cores = 4)
 
 ### Quality Control of BAM Files
 
-After aligning the reads to the genome, the result is a coordinate sorted bam.
-Two main quality control steps are taken with this bam to ensure the most accurate measurment of true TSSs.
+After aligning the reads to the genome, the result is a coordinate sorted and indexed BAM.
+Two main quality control steps are taken with this BAM to ensure the most accurate measurment of true TSSs.
 First, PCR duplicates reads are removed either using samtools (paired-end) or UMI-tools (single-end).
-Second, any TSS that has more than 3 soft-clipped bases adjacent to it is removed from the bam.
+During this step, various other checks are made, such as ensuring properly paired reads and removing non-primary alignments.
+Second, any TSS that has more than 3 soft-clipped bases adjacent to it is removed from the BAM.
 
 ```
 go_object <- process_bams(go_object, "./scratch/cleaned_bams", cores = 4)
 ```
 
-### Rudimantary TSS and TSR calling.
+### Rudimantary TSS and TSR calling
 
-After the quality contol steps, the resulting bams are ready for TSS and TSS cluster (TSR or CTSSs) analysis.
+After the quality contol steps, the resulting BAMs are ready for TSS and TSS cluster (TSR or cTSS) analysis.
 There are many great software suites available for this, including TSRchitect, CAGEr, ADAPT-CAGE, and CAGEfightR.
-For convenience, gostripes includes some rudimentary functions for basic TSS and TSR calling from the bam also.
+For convenience, gostripes includes some rudimentary functions for basic TSS and TSR calling.
 
 Although 5' ends with 3 or less soft-clipped bases are retained in the bam quality control steps, those bases are not considered when calling TSSs.
 For TSR calling, TSSs with less than the user defined threshold number of reads are first removed.
-Surviving TSSs within the user defined number of bases (25 by default) are then clustered into a TSR/CTSS.
-The resulting TSSs and TSRs/CTSSs can be exported as bedgraphs and bed files respectively.
+Surviving TSSs within the user defined number of bases (25 by default) are then clustered into a TSRs/cTSS.
+The resulting TSSs and TSRs/cTSSs can be exported as BEDGRAPH and BED files respectively.
 
 ```
 go_object <- call_TSSs(go_object)
