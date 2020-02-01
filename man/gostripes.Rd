@@ -24,5 +24,11 @@ Create gostripes object
 \item{\code{sample_sheet}}{Sample sheet}
 
 \item{\code{settings}}{Settings used throughout gostripes}
+
+\item{\code{TSSs}}{List of GRanges containing transcription start sites}
+
+\item{\code{TSRs}}{List of GRagnes containing transcription start regions (TSRs) or clustered transcription start sites (cTSSs)}
+
+\item{\code{feature_counts}}{data.frame containing the RNA-seq like feature counting of reads}
 }}
 

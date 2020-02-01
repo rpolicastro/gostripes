@@ -18,12 +18,20 @@
 
 fastq_quality <- function(go_obj, outdir, fastq_type = "both", cores = 1) {
 
-	## Make soure output directory exists.
+	## Check inputs to argument.
+	if (!is(go_obj, "gostripes")) stop("go_obj must be a gostripes object")
+	if (!is(outdir, "character")) stop("outdir must be a character")
+	if (!is(fastq_type, "character")) stop("fastq_type must be 'raw', 'processed', or 'both'")
+	if (!fastq_type %in% c("both", "raw", "processed")) stop("fastq_type must be 'raw', 'processed', or 'both'")
+	if (!is(cores, "numeric")) stop("cores must be a positive integer")
+	if (!cores %% 1 == 0) stop("cores must be a positive integer")
+
+	## Make sure output directory exists.
 	if (!dir.exists(outdir)) {
 		dir.create(outdir, recursive = TRUE)
 	}
 	
-	## Select raw R1 and R2 reads if required.
+	## Select raw R1 and also R2 reads if paired-end.
 	if (fastq_type %in% c("both", "raw")) {
 		raw_R1s <- pull(go_obj@sample_sheet, "R1_read")
 		raw_R2s <- go_obj@sample_sheet %>%
@@ -80,6 +88,17 @@ fastq_quality <- function(go_obj, outdir, fastq_type = "both", cores = 1) {
 	} else {
 		fastqs <- c(raw_fastqs, processed_fastqs)
 	}
+
+	## Print out some information on the FastQC analysis.
+	message(
+		"## FastQC Analysis of Raw and/or Processed Reads\n",
+		"##\n",
+		"## Output Directory: ", outdir, "\n",
+		"## Cores: ", cores, "\n",
+		"##\n",
+		"## FASTQ Files to Analyze:\n",
+		sprintf("## - %s\n", fastqs)
+	)
 
 	## Run FastQC quality control on FASTQ files.
 	command <- paste("fastqc -t", cores, "-o", outdir, paste0(fastqs, collapse = " "))
