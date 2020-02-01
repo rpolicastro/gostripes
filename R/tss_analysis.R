@@ -17,10 +17,20 @@
 #' @export
 
 call_TSSs <- function(go_obj) {
+
+	## Check validity of inputs.
+	if (!is(go_obj, "gostripes")) stop("go_obj must be gostripes object")
+
+	## Print out some information on TSS calling.
+	message("\n## Call TSSs\n")
 	
 	## Call TSSs for each sample in the sample sheet.
 	called_TSSs <- pmap(go_obj@sample_sheet, function(...) {
 		args <- list(...)
+		message(
+			"...Processing ", args$sample_name, "\n",
+			"......Calling TSSs"
+		)
 
 		# Check whether paired or sing-end.
 		seq_mode <- args$seq_mode
@@ -58,7 +68,8 @@ call_TSSs <- function(go_obj) {
 		TSSs <- TSSs %>%
 			count(seqnames, start, end, strand, name = "score") %>%
 			makeGRangesFromDataFrame(keep.extra.columns = TRUE)
-
+		
+		message("......Finished calling TSSs for ", args$sample_name)
 		return(TSSs)
 	})
 
@@ -87,13 +98,26 @@ call_TSSs <- function(go_obj) {
 
 export_TSSs <- function(go_obj, outdir) {
 
+	## Check validity of inputs.
+	if(!is(go_obj, "gostripes")) stop("go_obj should be a gostripes object")
+	if(!is(outdir, "character")) stop("outdir should be a character string")
+
 	## Make sure output directory exists.
-	if (!dir.exists(outdir)) {
-		dir.create(outdir, recursive = TRUE)
-	}
+	if (!dir.exists(outdir)) dir.create(outdir, recursive = TRUE)
+
+	## Print out some information on TSS BEDGRAPH export.
+	message(
+		"\n## TSS BEDGRAPH Export\n",
+		"##\n",
+		"## Output Directory: ", outdir, "\n"
+	)
 
 	## Export TSSs as bedgraphs split by positive and negative strands.
 	iwalk(go_obj@TSSs, function(TSSs, sample_name) {
+		message(
+			"...Processing ", sample_name, "\n",
+			"......Calling TSSs"
+		)
 
 		# Split TSSs into positive and negative strands.
 		pos_TSSs <- TSSs[strand(TSSs) == "+"]
@@ -106,7 +130,11 @@ export_TSSs <- function(go_obj, outdir) {
 		# Export bedgraphs.
 		export(pos_TSSs, pos_bedgraph, "bedgraph")
 		export(neg_TSSs, neg_bedgraph, "bedgraph")
+
+		message("......Finished calling TSSs for ", sample_name)
 	})
+
+	return(go_obj)
 }
 
 #' Call TSRs
@@ -185,4 +213,6 @@ export_TSRs <- function(go_obj, outdir) {
 		# Export TSR bed file.
 		export(TSRs, TSR_bed, "bed")
 	})
+
+	return(go_obj)
 }

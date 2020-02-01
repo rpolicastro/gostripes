@@ -66,22 +66,13 @@ go_object <- gostripes(sample_sheet) %>%
 	fastq_quality("./scratch/fastqc_reports", cores = 4) %>%
 	genome_index(assembly, annotation, "./scratch/genome_index", cores = 4) %>%
 	align_reads("./scratch/aligned", cores = 4) %>%
-	process_bams("./scratch/cleaned_bams", cores = 4)
-
-## Count features and export feature counts table.
-
-go_object <- count_features(go_object, annotation, cores = 4)
-export_counts(go_object, "./scratch/counts")
-
-## Call TSSs and export as BEDGRAPH.
-
-go_object <- call_TSSs(go_object)
-export_TSSs(go_object, "./scratch/TSSs")
-
-## Call TSRs using naive thresholding and export as BEDs.
-
-go_object <- call_TSRs(go_object, 3, 25)
-export_TSRs(go_object, "./scratch/TSRs")
+	process_bams("./scratch/cleaned_bams", cores = 4) %>%
+	count_features(annotation, cores = 4) %>%
+	export_counts("./scratch/counts") %>%
+	call_TSSs %>%
+	export_TSSs("./scratch/TSSs") %>%
+	call_TSRs(3, 25) %>%
+	export_TSRs("./scratch/TSRs")
 ```
 
 ## Detailed Start

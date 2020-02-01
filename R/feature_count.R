@@ -143,4 +143,6 @@ export_counts <- function(go_obj, outdir) {
 		col.names = TRUE, row.names = FALSE, sep = "\t", quote = FALSE
 	)
 	message("...Finished exporting feature counts table")
+
+	return(go_obj)
 }
