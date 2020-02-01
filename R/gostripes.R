@@ -68,7 +68,7 @@ gostripes <- function(sample_sheet, cores = 1) {
 
 	## Print out some information on the sample sheet.
 	message(
-		"## gostripesR v0.2.0\n##\n",
+		"\n## gostripesR v0.2.0\n##\n",
 		"## Sample sheet contains ", nrow(sample_sheet), " sample(s)\n",
 		sprintf("## - %s\n", pull(sample_sheet, "sample_name")),
 		"##\n",

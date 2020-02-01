@@ -18,19 +18,40 @@
 #' @export
 
 process_reads <- function(go_obj, outdir, contamination_fasta, cores = 1) {
+
+	## Check input validity.
+	if(!is(go_obj, "gostripes")) stop("go_obj must be a gostripes object")
+	if(!is(outdir, "character")) stop("output directory must be a character string")
+	if(!is(contamination_fasta, "character")) stop("contamination_fasta must be a character string")
+	if(!file.exists(contamination_fasta)) stop("contamination_fasta file not found")
+	if(!is(cores, "numeric")) stop("cores must be a positive integer")
+	if(!cores %% 1 == 0) stop("cores must be a positive integer")
 	
 	## Add output directory to settings and make sure it exists.
 	go_obj@settings$fastq_outdir <- outdir
-	dir.create(outdir, recursive = TRUE)
+	if (!dir.exists(outdir)) dir.create(outdir, recursive = TRUE)
+
+	## Print out some analysis information.
+	message(
+		"\n## FASTQ Processing\n",
+		"##\n",
+		"## Output Directory: ", outdir, "\n",
+		"## Contaminant FASTA: ", contamination_fasta, "\n",
+		"## Cores: ", cores, "\n",
+		"##\n",
+		"## Starting Analysis...\n"
+	)
 
 	## Process each pair of reads.
 	pwalk(go_obj@sample_sheet, function(...) {
 		args <- list(...)
-
-		# Check fir paired end status.
+		message("...Analyzing ", args$sample_name)
+		
+		# Check for paired end status.
 		seq_mode <- args$seq_mode
 
 		# Check for proper R1 read structure.
+		message("......Checking for proper R1 read structure")
 		R1_read <- args$R1_read
 		R2_read <- ifelse(seq_mode == "paired", args$R2_read, NA) 
 
@@ -40,6 +61,7 @@ process_reads <- function(go_obj, outdir, contamination_fasta, cores = 1) {
 		)
 
 		# UMI-tools to stash UMI in read name.
+		message("......Stashing the UMI sequence in the read name")
 		proper_R1 <- file.path(outdir, paste0("proper_", args$sample_name, "_R1.fastq"))
 		proper_R2 <- ifelse(
 			seq_mode == "paired",
@@ -52,6 +74,7 @@ process_reads <- function(go_obj, outdir, contamination_fasta, cores = 1) {
 		)
 
 		# Remove spacer and ribo-Gs.
+		message("......Trimming the spacer (TATA) and ribo-Gs (GGG)")
 		stashed_R1 <- file.path(outdir, paste0("stashed_", args$sample_name, "_R1.fastq"))
 		stashed_R2 <- ifelse(
 			seq_mode == "paired",
@@ -64,6 +87,7 @@ process_reads <- function(go_obj, outdir, contamination_fasta, cores = 1) {
 		)
 
 		# TagDust2 to remove contaminants such as rRNA and low complexity reads.
+		message("......Removing contaminant reads")
 		trimmed_R1 <- file.path(outdir, paste0("trimmed_", args$sample_name, "_R1.fastq"))
 		trimmed_R2 <- ifelse(
 			seq_mode == "paired",
@@ -74,6 +98,8 @@ process_reads <- function(go_obj, outdir, contamination_fasta, cores = 1) {
 			trimmed_R1, trimmed_R2, args$sample_name,
 			contamination_fasta, outdir, cores
 		)
+
+		message("......Done processing ", args$sample_name, "!")
 
 	})
 
@@ -156,7 +182,7 @@ remove_contaminants <- function(trimmed_R1, trimmed_R2, sample_name, contaminati
 	if (!is.na(trimmed_R2)) {command <- paste(command, trimmed_R2)}
 	
 	## Run TagDust2 command.
-	system(command)
+	system(command, ignore.stdout = TRUE, ignore.stderr = TRUE)
 }
 
 #' Stash UMI
@@ -200,7 +226,7 @@ stash_umi <- function(proper_R1, proper_R2, sample_name, outdir, umi_pattern = "
 	}
 
 	## Run UMI-tools command.
-	system(command)	
+	system(command, ignore.stdout = TRUE, ignore.stderr = TRUE)	
 }
 
 #' Remove Extra
