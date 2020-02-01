@@ -75,6 +75,12 @@ genome_index <- function(go_obj, genome_assembly, genome_annotation, outdir, cor
 
 align_reads <- function(go_obj, outdir, cores = 1) {
 
+	## Ensure validity of input.
+	if (!is(go_obj, "gostripes")) stop("go_obj must be a gostripes object")
+	if (!is(outdir, "character")) stop("outdir must be a character string")
+	if (!is(cores, "numeric")) stop("cores must be a positive integer")
+	if (cores < 1 | !cores %% 1 == 0) stop("cores must be a positive integer")
+
 	## Make sure the output directory exists.
 	if (!dir.exists(outdir)) dir.create(outdir, recursive = TRUE)
 
@@ -125,7 +131,6 @@ align_reads <- function(go_obj, outdir, cores = 1) {
 			file.path(outdir, paste0(args$sample_name, "_Aligned.sortedByCoord.out.bam"))
 		)
 		system(command)
-
 		message("......Done aligning and indexing ", args$sample_name, "!")
 	})
 

@@ -18,25 +18,44 @@
 
 process_bams <- function(go_obj, outdir, cores = 1) {
 
+	## Check validity of inputs.
+	if (!is(go_obj, "gostripes")) stop("go_obj should be a gostripes object")
+	if (!is(outdir, "character")) stop("outdir should be a character string")
+	if (!is(cores, "numeric")) stop("cores should be a positive integer")
+	if (cores < 1 | !cores %% 1 == 0) stop("cores should be a positive integer")
+
 	## Ensure output directory exists.
 	dir.create(outdir, recursive = TRUE)
 
 	## Saving some settings.
 	go_obj@settings$bam_dir <- outdir
 
+	# Print out some information about the bam processing.
+	message(
+		"\n## Bam Processing\n",
+		"##\n",
+		"## Output Directory: ", outdir, "\n",
+		"## Cores: ", cores, "\n"
+	)
+
 	## Processing the BAM files.
 	pwalk(go_obj@sample_sheet, function(...) {
 		args <- list(...)
+		message("...Processing ", args$sample_name)
 
 		# Remove PCR duplicates, reads missing mate, and non-primary alignments.
 		bam_file <- file.path(go_obj@settings$star_aligned, paste0(args$sample_name, "_Aligned.sortedByCoord.out.bam"))
 
+		message("......Removing PCR duplicates, non-primary alignments, and for paired-end data reads missing mates")
 		filter_flags(bam_file, args$sample_name, outdir, args$seq_mode, cores)
 
 		# Remove reads where the R1 has more than 3 soft-clipped bases on the 5' end.
 		deduped_bam <- file.path(outdir, paste0("deduped_", args$sample_name, ".bam"))
 
+		message("......Removing fragments with too many soft-clipped bases near TSS")
 		filter_soft(deduped_bam, args$sample_name, outdir, args$seq_mode)
+
+		message("......Done processing ", args$sample_name, "!")
 	})
 
 	return(go_obj)
@@ -70,14 +89,14 @@ filter_flags <- function(bam_file, sample_name, outdir, seq_mode, cores) {
 			"samtools view -F 3852 -f 3 -O BAM -@", cores,
 			"-o", file.path(outdir, paste0("deduped_", sample_name, ".bam"))
 		)
-		system(command)
+		system(command, ignore.stdout = TRUE, ignore.stderr = TRUE)
 
 		# Index the bams.
 		command <- paste(
 			"samtools index",
 			file.path(outdir, paste0("deduped_", sample_name, ".bam"))
 		)
-		system(command)
+		system(command, ignore.stdout = TRUE, ignore.stderr = TRUE)
 
 	} else {
 
@@ -87,14 +106,14 @@ filter_flags <- function(bam_file, sample_name, outdir, seq_mode, cores) {
 			"-o", file.path(outdir, paste0("filtered_", sample_name, ".bam")),
 			bam_file
 		)
-		system(command)
+		system(command, ignore.stdout = TRUE, ignore.stderr = TRUE)
 
 		# Index the bams.
 		command <- paste(
 			"samtools index",
 			file.path(outdir, paste0("filtered_", sample_name, ".bam"))
 		)
-		system(command)
+		system(command, ignore.stdout = TRUE, ignore.stderr = TRUE)
 
 		# Use UMI-tools to remove PCR duplicates.
 		command <- paste(
@@ -103,14 +122,14 @@ filter_flags <- function(bam_file, sample_name, outdir, seq_mode, cores) {
 			"-S", file.path(outdir, paste0("deduped_", sample_name, ".bam")),
 			paste0("--output-stats=", file.path(outdir, paste0("dedup_", sample_name)))
 		)
-		system(command)
+		system(command, ignore.stdout = TRUE, ignore.stderr = TRUE)
 
 		# Index the bams.
 		command <- paste(
 			"samtools index",
 			file.path(outdir, paste0("deduped_", sample_name, ".bam"))
 		)
-		system(command)
+		system(command, ignore.stdout = TRUE, ignore.stderr = TRUE)
 	}
 
 	
@@ -181,12 +200,12 @@ filter_soft <- function(deduped_bam, sample_name, outdir, seq_mode) {
 		paste0("READ_LIST_FILE=", file.path(outdir, paste0("soft_", sample_name, ".txt"))),
 		"FILTER=excludeReadList"
 	)
-	system(command)
+	system(command, ignore.stdout = TRUE, ignore.stderr = TRUE)
 
 	## Index the bams.
 	command <- paste(
 		"samtools index",
 		file.path(outdir, paste0("soft_", sample_name, ".bam"))
 	)
-	system(command)
+	system(command, ignore.stdout = TRUE, ignore.stderr = TRUE)
 }
