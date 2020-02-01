@@ -25,7 +25,7 @@ process_reads <- function(go_obj, outdir, contamination_fasta, cores = 1) {
 	if(!is(contamination_fasta, "character")) stop("contamination_fasta must be a character string")
 	if(!file.exists(contamination_fasta)) stop("contamination_fasta file not found")
 	if(!is(cores, "numeric")) stop("cores must be a positive integer")
-	if(!cores %% 1 == 0) stop("cores must be a positive integer")
+	if(!cores %% 1 == 0 | cores < 1) stop("cores must be a positive integer")
 	
 	## Add output directory to settings and make sure it exists.
 	go_obj@settings$fastq_outdir <- outdir
@@ -37,15 +37,13 @@ process_reads <- function(go_obj, outdir, contamination_fasta, cores = 1) {
 		"##\n",
 		"## Output Directory: ", outdir, "\n",
 		"## Contaminant FASTA: ", contamination_fasta, "\n",
-		"## Cores: ", cores, "\n",
-		"##\n",
-		"## Starting Analysis...\n"
+		"## Cores: ", cores, "\n"
 	)
 
 	## Process each pair of reads.
 	pwalk(go_obj@sample_sheet, function(...) {
 		args <- list(...)
-		message("...Analyzing ", args$sample_name)
+		message("...Processing ", args$sample_name)
 		
 		# Check for paired end status.
 		seq_mode <- args$seq_mode

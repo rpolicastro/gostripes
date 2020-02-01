@@ -62,7 +62,7 @@ sample_sheet <- tibble::tibble(
 ## Running the workflow on the example data.
 
 go_object <- gostripes(sample_sheet) %>%
-	process_reads("./scratch/cleaned_fastq", rRNA) %>%
+	process_reads("./scratch/cleaned_fastq", rRNA, cores = 4) %>%
 	fastq_quality("./scratch/fastqc_reports", cores = 4) %>%
 	genome_index(assembly, annotation, "./scratch/genome_index", cores = 4) %>%
 	align_reads("./scratch/aligned", cores = 4) %>%
@@ -128,7 +128,7 @@ and the processed FASTQ files.
 ```
 rRNA <- system.file("extdata", "Sc_rRNA.fasta", package = "gostripes")
 
-go_object <- process_reads(go_object, "./scratch/cleaned_fastq", rRNA)
+go_object <- process_reads(go_object, "./scratch/cleaned_fastq", rRNA, cores = 4)
 go_object <- fastq_quality(go_object, "./scratch/fastqc_reports", cores = 4)
 ```
 

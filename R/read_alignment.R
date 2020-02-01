@@ -14,14 +14,35 @@
 #' @export
 
 genome_index <- function(go_obj, genome_assembly, genome_annotation, outdir, cores = 1) {
+
+	## Check validity of inputs.
+	if (!is(go_object, "gostripes")) stop("go_obj must be a gostripes object")
+	if (!is(genome_assembly, "character")) stop("genome_assembly must be a character string")
+	if (!file.exists(genome_assembly)) stop("genome_assembly file does not exist")
+	if (!is(genome_annotation, "character")) stop("genome_annotation must be a character string")
+	if (!file.exists(genome_annotation)) stop("genome_annotation does not exist")
+	if (!is(outdir, "character")) stop("outdir must be a character string")
+	if (!is(cores, "numeric")) stop("cores must be a positive integer")
+	if (cores < 1 | !cores %% 1 == 0) stop("cores must be a positive integer")
 	
 	## Make sure the output directory exists.
-	dir.create(outdir, recursive = TRUE)
+	if (!dir.exists(outdir)) dir.create(outdir, recursive = TRUE)
 
 	## Store some of the settings.
 	go_obj@settings$genome_assembly <- genome_assembly
 	go_obj@settings$genome_annotation <- genome_annotation
 	go_obj@settings$star_index <- outdir
+
+	## Print out some information on genome index generation.
+	message(
+		"\n## Generating STAR Genome Index\n",
+		"##\n",
+		"## Assembly: ", genome_assembly, "\n",
+		"## Annotation: ", genome_annotation, "\n",
+		"## Output Directory: ", outdir, "\n",
+		"## Cores: ", cores, "\n\n",
+		"...Started indexing genome\n"
+	)
 
 	## Generate the STAR genome index.
 	command <- paste(
@@ -31,8 +52,9 @@ genome_index <- function(go_obj, genome_assembly, genome_annotation, outdir, cor
 		"--genomeFastaFiles", genome_assembly,
 		"--sjdbGTFfile", genome_annotation
 	)
-	system(command)
+	system(command, ignore.stdout = TRUE, ignore.stderr = TRUE)
 
+	message("...Done indexing genome!")
 	return(go_obj)
 }
 
@@ -54,14 +76,23 @@ genome_index <- function(go_obj, genome_assembly, genome_annotation, outdir, cor
 align_reads <- function(go_obj, outdir, cores = 1) {
 
 	## Make sure the output directory exists.
-	dir.create(outdir, recursive = TRUE)
+	if (!dir.exists(outdir)) dir.create(outdir, recursive = TRUE)
 
 	## Store some of the settings.
 	go_obj@settings$star_aligned <- outdir
 
+	## Print out some information on read alignment.
+	message(
+		"\n## Read Alignment\n",
+		"##\n",
+		"## Output Directory: ", outdir, "\n",
+		"## Cores: ", cores, "\n"
+	)
+
 	## Align reads using STAR.
 	pwalk(go_obj@sample_sheet, function(...) {
 		args <- list(...)
+		message("...Processing ", args$sample)
 
 		# Get sequencing mode for sample.
 		seq_mode <- args$seq_mode
@@ -84,14 +115,18 @@ align_reads <- function(go_obj, outdir, cores = 1) {
 			"--outSAMtype BAM SortedByCoordinate",
 			"--outFileNamePrefix", file.path(outdir, paste0(args$sample_name, "_"))
 		)
-		system(command)
+		message("......Aligning reads")
+		system(command, ignore.stdout = TRUE, ignore.stderr = TRUE)
 
 		# Index the aligned bams.
+		message("......Indexing coordinate sorted BAMs")
 		command <- paste(
 			"samtools index",
 			file.path(outdir, paste0(args$sample_name, "_Aligned.sortedByCoord.out.bam"))
 		)
 		system(command)
+
+		message("......Done aligning and indexing ", args$sample_name, "!")
 	})
 
 	return(go_obj)
