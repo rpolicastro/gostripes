@@ -22,7 +22,7 @@ singularity pull --arch amd64 library://rpolicastro/default/gostripes:0.2.0
 
 Start R within the container to gain access to the installed software.
 ```
-singularity exec -eCB "$(pwd)" -H "$(pwd)" gostripes_0.2.0.sif
+singularity exec -eCB "$(pwd)" -H "$(pwd)" gostripes_0.2.0.sif R
 ```
 
 You are now ready to use gostripes!
@@ -31,6 +31,7 @@ You are now ready to use gostripes!
 
 ```
 library("gostripes")
+library("magrittr")
 
 ## Load example data from package.
 
