@@ -1,13 +1,39 @@
 
 #' Generate Genome Index
 #'
-#' Generate a STAR genomic index
+#' @description
+#' Generate a STAR genomic index to be used in read alignment
 #'
 #' @param go_obj gostripes object
-#' @param genome_assembly Genome assembly in fasta file format
-#' @param genome_annotation Genome annotation in gtf file format
+#' @param genome_assembly Genome assembly in FASTA file format
+#' @param genome_annotation Genome annotation in GTF file format
 #' @param outdir Directory to save genome index to
 #' @param cores Number of CPU cores/threads to use
+#'
+#' @details
+#' Genome assemblies and annotations can be found in repositories such as
+#' NCBI, UCSC, and ensembl. The 'genome_assembly' should be a properly formatted
+#' FASTA file, ideally with repeats soft-masked. The 'genome_annotation' file
+#' should be in GTF format, as the STAR aligner does not use the newer GFF3 format.
+#'
+#' @return A STAR geome index
+#'
+#' @examples
+#' R1_fastq <- system.file("extdata", "S288C_R1.fastq", package = "gostripes")
+#' R2_fastq <- system.file("extdata", "S288C_R2.fastq", package = "gostripes")
+#' rRNA <- system.file("extdata", "Sc_rRNA.fasta", package = "gostripes")
+#' assembly <- system.file("extdata", "Saccharomyces_cerevisiae.R64-1-1.dna_sm.toplevel.fa", package = "gostripes")
+#' annotation <- system.file("extdata", "Saccharomyces_cerevisiae.R64-1-1.99.gtf", package = "gostripes")
+#'
+#' sample_sheet <- tibble::tibble(
+#'   "sample_name" = "stripeseq", "replicate_ID" = 1,
+#'   "R1_read" = R1_fastq, "R2_read" = R2_fastq
+#' )
+#'
+#' go_object <- gostripes(sample_sheet) %>%
+#'   process_reads("./scratch/cleaned_fastq", rRNA) %>%
+#'   fastq_quality("./scratch/fastqc_reports") %>%
+#'   genome_index(assembly, annotation, "./scratch/genome_index")
 #'
 #' @rdname genome_index-function
 #'
@@ -68,6 +94,24 @@ genome_index <- function(go_obj, genome_assembly, genome_annotation, outdir, cor
 #' @param go_obj gostripes object
 #' @param outdir Directory to save aligned files to
 #' @param cores Number of CPU cores/threads to use
+#'
+#' @return gostripes object and coordinate sorted and indexed BAMs
+#'
+#' @examples
+#' R1_fastq <- system.file("extdata", "S288C_R1.fastq", package = "gostripes")
+#' R2_fastq <- system.file("extdata", "S288C_R2.fastq", package = "gostripes")
+#' rRNA <- system.file("extdata", "Sc_rRNA.fasta", package = "gostripes")
+#'
+#' sample_sheet <- tibble::tibble(
+#'   "sample_name" = "stripeseq", "replicate_ID" = 1,
+#'   "R1_read" = R1_fastq, "R2_read" = R2_fastq
+#' )
+#'
+#' go_object <- gostripes(sample_sheet) %>%
+#'   process_reads("./scratch/cleaned_fastq", rRNA) %>%
+#'   fastq_quality("./scratch/fastqc_reports") %>%
+#'   genome_index(assembly, annotation, "./scratch/genome_index") %>%
+#'   align_reads("./scratch/aligned")
 #'
 #' @rdname align_reads-function
 #'

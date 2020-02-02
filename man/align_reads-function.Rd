@@ -13,6 +13,26 @@ align_reads(go_obj, outdir, cores = 1)
 
 \item{cores}{Number of CPU cores/threads to use}
 }
+\value{
+gostripes object and coordinate sorted and indexed BAMs
+}
 \description{
 Align reads to genome using STAR
+}
+\examples{
+R1_fastq <- system.file("extdata", "S288C_R1.fastq", package = "gostripes")
+R2_fastq <- system.file("extdata", "S288C_R2.fastq", package = "gostripes")
+rRNA <- system.file("extdata", "Sc_rRNA.fasta", package = "gostripes")
+
+sample_sheet <- tibble::tibble(
+  "sample_name" = "stripeseq", "replicate_ID" = 1,
+  "R1_read" = R1_fastq, "R2_read" = R2_fastq
+)
+
+go_object <- gostripes(sample_sheet) \%>\%
+  process_reads("./scratch/cleaned_fastq", rRNA) \%>\%
+  fastq_quality("./scratch/fastqc_reports") \%>\%
+  genome_index(assembly, annotation, "./scratch/genome_index") \%>\%
+  align_reads("./scratch/aligned")
+
 }

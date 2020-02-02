@@ -9,14 +9,41 @@ genome_index(go_obj, genome_assembly, genome_annotation, outdir, cores = 1)
 \arguments{
 \item{go_obj}{gostripes object}
 
-\item{genome_assembly}{Genome assembly in fasta file format}
+\item{genome_assembly}{Genome assembly in FASTA file format}
 
-\item{genome_annotation}{Genome annotation in gtf file format}
+\item{genome_annotation}{Genome annotation in GTF file format}
 
 \item{outdir}{Directory to save genome index to}
 
 \item{cores}{Number of CPU cores/threads to use}
 }
+\value{
+A STAR geome index
+}
 \description{
-Generate a STAR genomic index
+Generate a STAR genomic index to be used in read alignment
+}
+\details{
+Genome assemblies and annotations can be found in repositories such as
+NCBI, UCSC, and ensembl. The 'genome_assembly' should be a properly formatted
+FASTA file, ideally with repeats soft-masked. The 'genome_annotation' file
+should be in GTF format, as the STAR aligner does not use the newer GFF3 format.
+}
+\examples{
+R1_fastq <- system.file("extdata", "S288C_R1.fastq", package = "gostripes")
+R2_fastq <- system.file("extdata", "S288C_R2.fastq", package = "gostripes")
+rRNA <- system.file("extdata", "Sc_rRNA.fasta", package = "gostripes")
+assembly <- system.file("extdata", "Saccharomyces_cerevisiae.R64-1-1.dna_sm.toplevel.fa", package = "gostripes")
+annotation <- system.file("extdata", "Saccharomyces_cerevisiae.R64-1-1.99.gtf", package = "gostripes")
+
+sample_sheet <- tibble::tibble(
+  "sample_name" = "stripeseq", "replicate_ID" = 1,
+  "R1_read" = R1_fastq, "R2_read" = R2_fastq
+)
+
+go_object <- gostripes(sample_sheet) \%>\%
+  process_reads("./scratch/cleaned_fastq", rRNA) \%>\%
+  fastq_quality("./scratch/fastqc_reports") \%>\%
+  genome_index(assembly, annotation, "./scratch/genome_index")
+
 }
