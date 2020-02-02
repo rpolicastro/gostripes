@@ -40,6 +40,19 @@ setClass(
 #' @param sample_sheet Sample sheet data.frame containing 'sample_name', 'replicate_ID", 'R1_read', and 'R2_read'
 #' @param cores Number of CPU cores/threads available
 #'
+#' @return gostripes object containing the sample sheet and available cores
+#'
+#' @examples
+#' R1_fastq <- system.file("extdata", "S288C_R1.fastq", package = "gostripes")
+#' R2_fastq <- system.file("extdata", "S288C_R2.fastq", package = "gostripes")
+#'
+#' sample_sheet <- tibble::tibble(
+#'   "sample_name" = "stripeseq", "replicate_ID" = 1,
+#'   "R1_read" = R1_fastq, "R2_read" = R2_fastq
+#' )
+#'
+#' go_object <- gostripes(sample_sheet)
+#'
 #' @rdname gostripes
 #'
 #' @export

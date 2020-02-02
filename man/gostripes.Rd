@@ -13,6 +13,9 @@ gostripes(sample_sheet, cores = 1)
 
 \item{cores}{Number of CPU cores/threads available}
 }
+\value{
+gostripes object containing the sample sheet and available cores
+}
 \description{
 Class container appropriate slots for gostripes
 
@@ -32,3 +35,15 @@ Create gostripes object
 \item{\code{feature_counts}}{data.frame containing the RNA-seq like feature counting of reads}
 }}
 
+\examples{
+R1_fastq <- system.file("extdata", "S288C_R1.fastq", package = "gostripes")
+R2_fastq <- system.file("extdata", "S288C_R2.fastq", package = "gostripes")
+
+sample_sheet <- tibble::tibble(
+  "sample_name" = "stripeseq", "replicate_ID" = 1,
+  "R1_read" = R1_fastq, "R2_read" = R2_fastq
+)
+
+go_object <- gostripes(sample_sheet)
+
+}

@@ -1,7 +1,13 @@
 
 #' Process Reads
 #'
-#' Remove rRNA contamination, low complexity reads, and trim UMI-Spacer-GGG
+#' @description
+#' This function will perform quality control and the appropriate processing steps for STRIPE-seq data.
+#' First, proper R1 read structure is checked by looking for 'NNNNNNNNTATAGGG'.
+#' This corresponds to the 8 base UMI, the spacer (TATA), and the ribo-Gs (GGG) used for template switching.
+#' Second, UMI-tools is used to trim and stash the 8 base UMI into the FASTQ read name.
+#' Third, the remaining spacer and ribo-Gs are trimmed.
+#' Finally, TagDust2 is used to remove any contaminant reads, such as rRNA.
 #'
 #' @import tibble
 #' @importFrom stringr str_replace
@@ -12,6 +18,34 @@
 #' @param contamination_fasta fasta file containing contaminants to remove, such as rRNA
 #' @param outdir output directory for filtered and trimmed reads
 #' @param cores Number of CPU core/threads to use
+#'
+#' @details
+#' There will be several output files generated in the specified \strong{outdir}.
+#' 'stashed_*' FASTQ files are create after the UMI is added to the read name.
+#' 'trimmed_*' FASTQ files have the spacer and ribo-Gs trimmed off.
+#' 'decon_*' FASTQ files have the contaminants removed,
+#' and are the files used in read alignment.
+#'
+#' The \strong{contamination_fasta} file must be a properly formatted FASTA file.
+#' It is recommended for this file to contain at least rRNA reads,
+#' as they tend to be the most common and confounding contaminant.
+#' Try to limit the number of contaminants as a large number
+#' of entries may cause slow performance on this step.
+#'
+#' @return gostripes object and processed fastq files
+#'
+#' @examples
+#' R1_fastq <- system.file("extdata", "S288C_R1.fastq", package = "gostripes")
+#' R2_fastq <- system.file("extdata", "S288C_R2.fastq", package = "gostripes")
+#' rRNA <- system.file("extdata", "Sc_rRNA.fasta", package = "gostripes")
+#'
+#' sample_sheet <- tibble::tibble(
+#'   "sample_name" = "stripeseq", "replicate_ID" = 1,
+#'   "R1_read" = R1_fastq, "R2_read" = R2_fastq
+#' )
+#'
+#' go_object <- gostripes(sample_sheet) %>%
+#'   process_reads("./scratch/cleaned_fastq", rRNA)
 #'
 #' @rdname process_reads-function
 #'
