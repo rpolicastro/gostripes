@@ -31,9 +31,6 @@ count_features <- function(go_obj, genome_annotation, cores = 1) {
 		"## - Summarize fragment counts by gene \n",
 		"## - Fragments must overlap feature at least 10 bases \n",
 		"## - Fragments are assigned to feature with largest overlap \n",
-		"##\n",
-		"## Samples to Analyze:\n",
-		sprintf("## - %s\n", pull(go_obj@sample_sheet, "sample_name")), "\n\n",
 		"...Started counting features"
 	)
 		
@@ -130,10 +127,7 @@ export_counts <- function(go_obj, outdir) {
 	message(
 		"\n## Exporting Feature Counts\n",
 		"##\n",
-		"## Output Directory: ", outdir, "\n",
-		"##\n",
-		"## Samples with Feature Counts:\n",
-		sprintf("## - %s\n", pull(go_obj@sample_sheet, "sample_name"))
+		"## Output Directory: ", outdir, "\n"
 	)
 
 	## Export the counts to a table.

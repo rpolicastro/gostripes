@@ -94,17 +94,14 @@ fastq_quality <- function(go_obj, outdir, fastq_type = "both", cores = 1) {
 		"\n## FastQC Analysis of Raw and/or Processed Reads\n",
 		"##\n",
 		"## Output Directory: ", outdir, "\n",
-		"## Cores: ", cores, "\n",
-		"##\n",
-		"## FASTQ Files to Analyze:\n",
-		sprintf("## - %s\n", fastqs), "\n\n",
-		"...Started FastQC quality control\n",
-		"...Finished FastQC quality control!\n"
+		"## Cores: ", cores, "\n\n",
+		"...Started FastQC quality control"
 	)
 
 	## Run FastQC quality control on FASTQ files.
 	command <- paste("fastqc -t", cores, "-o", outdir, paste0(fastqs, collapse = " "))
 	system(command, ignore.stdout = TRUE, ignore.stderr = TRUE)
+	message("...Finished FastQC quality control!")
 
 	go_obj@settings$fastqc_outdir <- outdir
 	return(go_obj)

@@ -143,7 +143,7 @@ export_TSSs <- function(go_obj, outdir) {
 #'
 #' @import S4Vectors
 #' @importFrom GenomicRanges GRanges score reduce
-#' @importFrom purrr map
+#' @importFrom purrr imap
 #'
 #' @param go_obj gostripes object
 #' @param threshold TSSs with read count below threshold will be discarded
@@ -154,13 +154,29 @@ export_TSSs <- function(go_obj, outdir) {
 #' @export
 
 call_TSRs <- function(go_obj, threshold, clust_dist) {
+
+	## Check validity of inputs.
+	if (!is(go_object, "gostripes")) stop("go_obj must be a gostripes object")
+	if (!is(threshold, "numeric")) stop("threshold must be a positive integer")
+	if (threshold < 0 | !threshold %% 1 == 0) stop("threshold must be a positive integer")
+
+	## Print out some information on thresholding.
+	message(
+		"\n## Calling TSRs/cTSSs\n##\n",
+		"## Threshold: >= ", threshold, "\n",
+		"## Cluster Distance: ", clust_dist, " bases\n"
+	)
 	
-	## Naive thresholding to discover TSS clusters (TSRs).
-	TSRs <- map(go_obj@TSSs, function(TSSs) {
+	## Naive thresholding to discover TSS clusters (TSRs or cTSSs).
+	TSRs <- imap(go_obj@TSSs, function(TSSs, sample_name) {
+		message(
+			"...Processing ", sample_name, "\n",
+			"......Clustering TSSs into TSRs/cTSSs"
+		)
 
 		# Filter TSSs below threshold and merge TSSs within clust_dist.
 		filtered_TSSs <- TSSs[score(TSSs) >= threshold]
-		clustered <- reduce(filtered_TSSs, with.revmap = TRUE, min.gapwidth = clust_dist + 1)
+		clustered <- GenomicRanges::reduce(filtered_TSSs, with.revmap = TRUE, min.gapwidth = clust_dist + 1)
 
 		# Get the aggregated score and unique TSSs of clustered TSSs.
 		cluster_info <- aggregate(
@@ -175,6 +191,7 @@ call_TSRs <- function(go_obj, threshold, clust_dist) {
 		clustered$n_unique <- cluster_info$n_unique
 		clustered$revmap <- NULL
 
+		message("......Finished TSR/cTSS calling for ", sample_name)
 		return(clustered)
 	})
 
@@ -198,20 +215,33 @@ call_TSRs <- function(go_obj, threshold, clust_dist) {
 #' @export
 
 export_TSRs <- function(go_obj, outdir) {
+
+	## Check validity of inputs.
+	if (!is(go_obj, "gostripes")) stop("go_obj must be a gostripes object")
+	if (!is(outdir, "character")) stop("outdir must be a character string")
 	
 	## Make sure output directory exists.
-	if (!dir.exists(outdir)) {
-		dir.create(outdir, recursive = TRUE)
-	}
+	if (!dir.exists(outdir)) dir.create(outdir, recursive = TRUE)
+
+	## Print out some information on TSR/cTSS export.
+	message(
+		"\n## TSR/cTSS Export\n##\n",
+		"## Output Directory: ", outdir, "\n"
+	)
 
 	## Export each TSR as a bed file.
-	iwalk(go_obj@TSRs, function(TSRs, sample_name) {
-		
+	iwalk(go_obj@TSRs, function(TSRs, sample_name) {		
+		message(
+			"...Processing ", sample_name, "\n",
+			"......Saving TSRs/TSSs to BED"
+		)
+
 		# Create new bed file name.
 		TSR_bed <- file.path(outdir, paste0(sample_name, ".bed"))
 
 		# Export TSR bed file.
 		export(TSRs, TSR_bed, "bed")
+		message("......Finished saving TSRs/cTSSs to BED for ", sample_name)
 	})
 
 	return(go_obj)
