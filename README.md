@@ -20,16 +20,9 @@ Pull the singularity container from Sylabs Cloud.
 singularity pull --arch amd64 library://rpolicastro/default/gostripes:0.2.0
 ```
 
-Shell into the container to gain access to the installed software.
+Start R within the container to gain access to the installed software.
 ```
-singularity shell -eCB "$(pwd)" -H "$(pwd)" gostripes_0.2.0.sif
-```
-
-Activate the conda environment within the container, and start R.
-```
-. /opt/conda/etc/profile.d/conda.sh
-conda activate gostripes
-R
+singularity exec -eCB "$(pwd)" -H "$(pwd)" gostripes_0.2.0.sif
 ```
 
 You are now ready to use gostripes!
