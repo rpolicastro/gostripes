@@ -9,6 +9,36 @@ call_TSSs(go_obj)
 \arguments{
 \item{go_obj}{gostripes object}
 }
+\value{
+gostripes object containing a list of TSSs as GRanges
+}
 \description{
-Get TSSs from bams
+Call TSSs from BAMs
+}
+\details{
+This function will call TSSs from BAM files.
+Although during BAM processing there is a tolerance for 3 or less
+soft-clipped bases, these soft-clipped bases are ignored when
+calling TSSs.
+}
+\examples{
+R1_fastq <- system.file("extdata", "S288C_R1.fastq", package = "gostripes")
+R2_fastq <- system.file("extdata", "S288C_R2.fastq", package = "gostripes")
+rRNA <- system.file("extdata", "Sc_rRNA.fasta", package = "gostripes")
+assembly <- system.file("extdata", "Saccharomyces_cerevisiae.R64-1-1.dna_sm.toplevel.fa", package = "gostripes")
+annotation <- system.file("extdata", "Saccharomyces_cerevisiae.R64-1-1.99.gtf", package = "gostripes")
+
+sample_sheet <- tibble::tibble(
+  "sample_name" = "stripeseq", "replicate_ID" = 1,
+  "R1_read" = R1_fastq, "R2_read" = R2_fastq
+)
+
+go_object <- gostripes(sample_sheet) \%>\%
+  process_reads("./scratch/cleaned_fastq", rRNA) \%>\%
+  fastq_quality("./scratch/fastqc_reports") \%>\%
+  genome_index(assembly, annotation, "./scratch/genome_index") \%>\%
+  align_reads("./scratch/aligned") \%>\%
+  process_bams("./scratch/cleaned_bams") \%>\%
+  call_TSSs
+
 }
