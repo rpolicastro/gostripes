@@ -42,7 +42,7 @@
 genome_index <- function(go_obj, genome_assembly, genome_annotation, outdir, cores = 1) {
 
 	## Check validity of inputs.
-	if (!is(go_object, "gostripes")) stop("go_obj must be a gostripes object")
+	if (!is(go_obj, "gostripes")) stop("go_obj must be a gostripes object")
 	if (!is(genome_assembly, "character")) stop("genome_assembly must be a character string")
 	if (!file.exists(genome_assembly)) stop("genome_assembly file does not exist")
 	if (!is(genome_annotation, "character")) stop("genome_annotation must be a character string")

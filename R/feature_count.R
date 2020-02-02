@@ -51,6 +51,13 @@
 
 count_features <- function(go_obj, genome_annotation, cores = 1) {
 
+	## Check validity of input.
+	if (!is(go_obj, "gostripes")) stop("go_obj should be a gostripes object")
+	if (!is(genome_annotation, "character")) stop("genome_annotation must be a character string")
+	if (!file.exists(genome_annotation)) stop("genome_annotation file could not be found")
+	if (!is(cores, "numeric")) stop("cores should be a positive integer")
+	if (cores < 1 | !cores %% 1 == 0) stop("cores should be a positive integer")
+
 	## Print out some information on feature counting.
 	message(
 		"\n## Feature Counting\n",
@@ -173,7 +180,7 @@ count_features <- function(go_obj, genome_annotation, cores = 1) {
 export_counts <- function(go_obj, outdir) {
 
 	## Check validity of inputs.
-	if(!is(go_object, "gostripes")) stop("go_obj should be a gostripes object")
+	if(!is(go_obj, "gostripes")) stop("go_obj should be a gostripes object")
 	if(!is(outdir, "character")) stop("outdir should be a character string")
 
 	## Ensure output directory exists.

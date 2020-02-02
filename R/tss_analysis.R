@@ -237,7 +237,7 @@ export_TSSs <- function(go_obj, outdir) {
 call_TSRs <- function(go_obj, threshold, clust_dist) {
 
 	## Check validity of inputs.
-	if (!is(go_object, "gostripes")) stop("go_obj must be a gostripes object")
+	if (!is(go_obj, "gostripes")) stop("go_obj must be a gostripes object")
 	if (!is(threshold, "numeric")) stop("threshold must be a positive integer")
 	if (threshold < 0 | !threshold %% 1 == 0) stop("threshold must be a positive integer")
 
