@@ -13,7 +13,48 @@ process_bams(go_obj, outdir, cores = 1)
 
 \item{cores}{Number of CPU cores/threads to use}
 }
+\value{
+gostripes object and processed BAM files
+}
 \description{
 Quality control steps for BAM files.
-Includes PCR duplicate removal, ensuring both pairs mapped, and keeping only primary alignments.
+PCR duplicates are first removed along with non-primary alignments,
+and then reads missing mate pairs (for paired-end data).
+R1 reads with more than 3 soft-clipped bases on the 5' end of the read
+are then discarded.
+}
+\details{
+For paired-end data, Samtools is used both to mark and remove duplicates,
+as well as remove non-primary alignments and reads missing mate pairs.
+This produces BAMs in the output directory with the names 'deduped_*'.
+
+For single-end data, samtools is used to remove non-primary reads,
+producing BAMs with the name 'filtered_*'.
+Then, UMI-tools is used to remove PCR duplicates via the previously stashed UMIs.
+The file name for these BAMs is 'deduped_*'.
+
+After the above processing steps, R1 reads with more than 3 soft-clipped 5' bases
+are removed. Some tolerance is allowed for soft-clipped bases because it is common for
+there to be at least one non-templated C adjacent to the true TSS perportedly due to
+the cap acting as a template itself.
+}
+\examples{
+R1_fastq <- system.file("extdata", "S288C_R1.fastq", package = "gostripes")
+R2_fastq <- system.file("extdata", "S288C_R2.fastq", package = "gostripes")
+rRNA <- system.file("extdata", "Sc_rRNA.fasta", package = "gostripes")
+assembly <- system.file("extdata", "Saccharomyces_cerevisiae.R64-1-1.dna_sm.toplevel.fa", package = "gostripes")
+annotation <- system.file("extdata", "Saccharomyces_cerevisiae.R64-1-1.99.gtf", package = "gostripes")
+
+sample_sheet <- tibble::tibble(
+  "sample_name" = "stripeseq", "replicate_ID" = 1,
+  "R1_read" = R1_fastq, "R2_read" = R2_fastq
+)
+
+go_object <- gostripes(sample_sheet) \%>\%
+  process_reads("./scratch/cleaned_fastq", rRNA) \%>\%
+  fastq_quality("./scratch/fastqc_reports") \%>\%
+  genome_index(assembly, annotation, "./scratch/genome_index") \%>\%
+  align_reads("./scratch/aligned") \%>\%
+  process_bams("./scratch/cleaned_bams")
+
 }

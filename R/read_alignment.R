@@ -86,6 +86,7 @@ genome_index <- function(go_obj, genome_assembly, genome_annotation, outdir, cor
 
 #' Align Reads
 #'
+#' @description
 #' Align reads to genome using STAR
 #'
 #' @import tibble
@@ -101,6 +102,8 @@ genome_index <- function(go_obj, genome_assembly, genome_annotation, outdir, cor
 #' R1_fastq <- system.file("extdata", "S288C_R1.fastq", package = "gostripes")
 #' R2_fastq <- system.file("extdata", "S288C_R2.fastq", package = "gostripes")
 #' rRNA <- system.file("extdata", "Sc_rRNA.fasta", package = "gostripes")
+#' assembly <- system.file("extdata", "Saccharomyces_cerevisiae.R64-1-1.dna_sm.toplevel.fa", package = "gostripes")
+#' annotation <- system.file("extdata", "Saccharomyces_cerevisiae.R64-1-1.99.gtf", package = "gostripes")
 #'
 #' sample_sheet <- tibble::tibble(
 #'   "sample_name" = "stripeseq", "replicate_ID" = 1,
