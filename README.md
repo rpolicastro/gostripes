@@ -1,4 +1,4 @@
-# gostripesR v0.2.0
+# gostripesR v0.3.0
 
 Processing and quality control of STRIPE-seq FASTQ files.
 
@@ -17,12 +17,12 @@ Create a new scratch directory and navigate into it, and then follow the instruc
 
 Pull the singularity container from Sylabs Cloud.
 ```
-singularity pull --arch amd64 library://rpolicastro/default/gostripes:0.2.0
+singularity pull --arch amd64 library://rpolicastro/default/gostripes:0.3.0
 ```
 
 Start R within the container to gain access to the installed software.
 ```
-singularity exec -eCB "$(pwd)" -H "$(pwd)" gostripes_0.2.0.sif R
+singularity exec -eCB "$(pwd)" -H "$(pwd)" gostripes_0.3.0.sif R
 ```
 
 You are now ready to use gostripes!
