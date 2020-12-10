@@ -7,23 +7,32 @@ Processing and quality control of STRIPE-seq FASTQ files.
 ### Singularity Container
 
 It is recommended to use the provided singularity container with all required software installed.
-Singularity are containers similar to docker containers that allow compatability and reproducibilty for software and workflows.
+Singularity are containers similar to docker containers that allow compatibility and reproducibility for software and workflows.
 You must first install the [singularity software](https://sylabs.io/guides/3.5/user-guide/quick_start.html#quick-installation-steps) 
 onto your machine to use containers.
 
-When you have singularity isntalled and are ready to run the workflow,
+When you have singularity installed and are ready to run the workflow,
 you can then download the gostripes container to access all required software.
 Create a new scratch directory and navigate into it, and then follow the instructions below.
 
-Pull the singularity container from Sylabs Cloud.
+Pull the singularity container from Sylabs Cloud:
 ```
 singularity pull --arch amd64 library://rpolicastro/default/gostripes:0.3.0
 ```
 
-Start R within the container to gain access to the installed software.
+Start R within the container to gain access to the installed software:
 ```
-singularity exec -eCB "$(pwd)" -H "$(pwd)" gostripes_0.3.0.sif R
+singularity exec -eCH "$PWD" gostripes_0.3.0.sif R
 ```
+...runs R inside a container with your current directory bound as the container's home directory.
+
+You can also give the container access to other directories on the host machine:
+```
+singularity exec -eCB your/genome/dir/etc:/opt/genome/  -H "$PWD" gostripes_0.3.0.sif R
+```
+...binds the container's /opt/genome/ path to a host directory possibly containing genome files
+
+See `singularity exec --help` for more info
 
 You are now ready to use gostripes!
 
@@ -73,11 +82,11 @@ go_object <- gostripes(sample_sheet) %>%
 
 ### Preparing Data
 
-gostripes takes demultiplexed STRIPE-seq FASTQ files as input, in either paired or single-end sequencing format.
-For paired end data it is important that the forward and reverse reads are in the same order in both files.
+gostripes takes demultiplexed STRIPE-seq FASTQ files as input, in either paired- or single-end sequencing format.
+For paired-end data it is important that the forward and reverse reads are in the same order in both files.
 
 gostripes is also able to handle multiple samples at the same time using a sample sheet.
-The sample sheet should have 4 columns: sample_name, replicate_ID, R1_read, R2_read.
+The sample sheet should have 4 columns: sample_name, replicate_ID, R1_read, R2_read.  This header row must be included.
 Each sample in a group of biological replicates should have the same replicate ID.
 The R1 and R2 reads should include the path to the file as well as the file name.
 If the samples were sequenced in single-end mode, you can leave the entries in R2_read blank.
@@ -107,7 +116,7 @@ Third, the remaining TATAGGG after UMI removal is trimmed.
 Finally, contaminant reads such as rRNA are filtered out.
 This requires a FASTA file containing the contaminant sequences to search against.
 
-As further quality assurance FastQC quality reports are generated both for the raw FASTQ files,
+As further quality assurance, FastQC quality reports are generated both for the raw FASTQ files,
 and the processed FASTQ files.
 
 ```
@@ -134,7 +143,7 @@ go_object <- align_reads(go_object, "./scratch/aligned", cores = 4)
 ### Quality Control of BAM Files
 
 After aligning the reads to the genome, the result is a coordinate sorted and indexed BAM.
-Two main quality control steps are taken with this BAM to ensure the most accurate measurment of true TSSs.
+Two main quality control steps are taken with this BAM to ensure the most accurate measurement of true TSSs.
 First, PCR duplicates reads are removed either using samtools (paired-end) or UMI-tools (single-end).
 During this step, various other checks are made, such as ensuring properly paired reads and removing non-primary alignments.
 Second, any TSS that has more than 3 soft-clipped bases adjacent to it is removed from the BAM.
@@ -154,7 +163,7 @@ go_object <- count_features(go_object, annotation, cores = 4)
 export_counts(go_object, "./scratch/counts")
 ```
 
-### Rudimantary TSS and TSR Calling
+### Rudimentary TSS and TSR Calling
 
 The final BAMs are also ready for TSS and TSS cluster (TSR or cTSS) analysis.
 There are many great software suites available for this, including
@@ -181,11 +190,11 @@ export_TSRs(go_object, "./scratch/TSRs")
 
 The development of gostripes would not be possible without these great software packages.
 
-* [FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/): FASTQ qauality control.
+* [FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/): FASTQ quality control.
 * [TagDust 2](http://tagdust.sourceforge.net/): FASTQ read filtering.
 * [STAR](https://github.com/alexdobin/STAR): Short read sequence aligner.
 * [Samtools](http://www.htslib.org/): SAM/BAM file manipulation.
 * [Picard](https://broadinstitute.github.io/picard/): Manipulation of SAM/BAM files.
 
 A special shoutout to the [tidyverse](https://www.tidyverse.org/) for making data science in R easy.
-Also, a sincere thank you to [Bioconductor](http://bioconductor.org/) and it's varied contributors for hosting so many invaluable tools.
+Also, a sincere thank you to [Bioconductor](http://bioconductor.org/) and its varied contributors for hosting so many invaluable tools.
